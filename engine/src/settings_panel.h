@@ -1,0 +1,19 @@
+#pragma once
+
+#include "config.h"
+#include "hooks.h"
+
+#include <string>
+
+bool DrawLookSettings(Config& c);
+
+class SettingsPanel
+{
+public:
+    void Draw(ConfigStore& store, const FogFrameStatus& status, bool& open);
+
+private:
+    void DrawSaveRow(ConfigStore& store);
+
+    bool m_saveFailed = false;
+};

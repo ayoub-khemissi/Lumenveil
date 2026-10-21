@@ -1,0 +1,20 @@
+build/
+dist/
+*.bin
+*.log
+*.user
+.vs/
+engine/data/
+
+# game files and data made from them never belong here
+*.MPQ
+*.mpq
+*.dbc
+*.db2
+*.adt
+*.wdt
+*.blp
+*.m2
+*.wmo
+*.skin
+Wow.exe

@@ -1,0 +1,201 @@
+# Changes from CoAVolFog
+
+This engine is a modified version of CoAVolFog, released under the GNU General Public License version 2 like
+the original (https://github.com/jealous-sound/coa-vfog).
+
+It is based on CoAVolFog's commit 4c1a956 of 2026-09-25. The Lumenveil authors changed it between 2026-09-26 and
+2026-10-16, in 153 changes, then cut out the tools used only to make the screenshots and tune the
+zones for this public release.
+
+## Files added (151)
+
+- `shaders/vf_client_shadow.hlsl`
+- `shaders/vf_clouds.hlsli`
+- `shaders/vf_edge_occluders.hlsl`
+- `shaders/vf_effect_gather.hlsl`
+- `shaders/vf_effect_reduce.hlsl`
+- `shaders/vf_glow_blur.hlsl`
+- `shaders/vf_glow_mask.hlsl`
+- `shaders/vf_lamp_blur.hlsl`
+- `shaders/vf_lamp_shadow.hlsli`
+- `shaders/vf_lamp_surfaces.hlsl`
+- `shaders/vf_lamp_table.hlsli`
+- `shaders/vf_lamp_tiles.hlsli`
+- `shaders/vf_lamp_visibility.hlsl`
+- `shaders/vf_lamps.hlsl`
+- `shaders/vf_material_tag.hlsli`
+- `shaders/vf_memory.hlsli`
+- `shaders/vf_memory_fill.hlsl`
+- `shaders/vf_memory_keep.hlsl`
+- `shaders/vf_memory_realign_vs.hlsl`
+- `shaders/vf_memory_scatter.hlsl`
+- `shaders/vf_memory_scatter_vs.hlsl`
+- `shaders/vf_relief_model.hlsl`
+- `shaders/vf_relief_terrain.hlsl`
+- `shaders/vf_sky_reference.hlsl`
+- `shaders/vf_surface_normal.hlsli`
+- `shaders/vf_water.hlsl`
+- `shaders/vf_water_depth.hlsl`
+- `shaders/vf_water_lamps.hlsl`
+- `shaders/vf_water_memory.hlsl`
+- `shaders/vf_water_memory.hlsli`
+- `shaders/vf_water_reflect.hlsl`
+- `shaders/vf_water_rings.hlsli`
+- `shaders/vf_water_slope.hlsl`
+- `shaders/vf_water_surface.hlsli`
+- `shaders/vf_water_waves.hlsl`
+- `shaders/vf_wet_surfaces.hlsl`
+- `src/belt_lantern.cpp`
+- `src/belt_lantern.h`
+- `src/call_watch.h`
+- `src/client_code.h`
+- `src/client_shadows.cpp`
+- `src/client_shadows.h`
+- `src/client_world.cpp`
+- `src/client_world.h`
+- `src/cloud_noise.cpp`
+- `src/cloud_noise.h`
+- `src/corpse_lights.cpp`
+- `src/corpse_lights.h`
+- `src/draw_log.cpp`
+- `src/draw_log.h`
+- `src/drift_noise.cpp`
+- `src/drift_noise.h`
+- `src/effect_lights.cpp`
+- `src/effect_lights.h`
+- `src/frame_profile.cpp`
+- `src/frame_profile.h`
+- `src/lamp_catalog.cpp`
+- `src/lamp_catalog.h`
+- `src/lamp_data.h`
+- `src/lamp_selection.cpp`
+- `src/lamp_selection.h`
+- `src/lamp_tiles.cpp`
+- `src/lamp_tiles.h`
+- `src/liquid_data.h`
+- `src/liquid_map.cpp`
+- `src/liquid_map.h`
+- `src/material_catalog.cpp`
+- `src/material_catalog.h`
+- `src/material_data.h`
+- `src/region_panel.cpp`
+- `src/region_panel.h`
+- `src/region_settings.cpp`
+- `src/region_settings.h`
+- `src/region_zones.cpp`
+- `src/region_zones.h`
+- `src/regions.cpp`
+- `src/regions.h`
+- `src/relief_catalog.cpp`
+- `src/relief_catalog.h`
+- `src/relief_classes.h`
+- `src/relief_data.h`
+- `src/runtime_heights.cpp`
+- `src/runtime_heights.h`
+- `src/shader_splice.cpp`
+- `src/shader_splice.h`
+- `src/shaft_memory.h`
+- `src/sky_filter.cpp`
+- `src/sky_filter.h`
+- `src/spots.cpp`
+- `src/spots.h`
+- `src/terrain_material.h`
+- `src/terrain_relief.cpp`
+- `src/terrain_relief.h`
+- `src/terrain_shadow.cpp`
+- `src/terrain_shadow.h`
+- `src/water_lamps.cpp`
+- `src/water_lamps.h`
+- `src/water_rain.cpp`
+- `src/water_rain.h`
+- `src/water_rings.cpp`
+- `src/water_rings.h`
+- `src/water_ripples.cpp`
+- `src/water_ripples.h`
+- `src/water_waves.cpp`
+- `src/water_waves.h`
+- `src/wet_surfaces.cpp`
+- `src/wet_surfaces.h`
+- `src/world_controls.cpp`
+- `src/world_controls.h`
+- `tests/caster_ps.hlsl`
+- `tests/caster_vs.hlsl`
+- `tests/model_ps.hlsl`
+- `tests/model_vs.hlsl`
+- `tests/receiver_vs.hlsl`
+- `tests/replay_ps.hlsl`
+- `tests/replay_vs.hlsl`
+- `tests/terrain_ps.hlsl`
+- `tests/terrain_vs.hlsl`
+- `tools/lamp_extract/archive_set.cpp`
+- `tools/lamp_extract/archive_set.h`
+- `tools/lamp_extract/blp_hash.cpp`
+- `tools/lamp_extract/blp_hash.h`
+- `tools/lamp_extract/byte_view.h`
+- `tools/lamp_extract/census.cpp`
+- `tools/lamp_extract/census.h`
+- `tools/lamp_extract/CMakeLists.txt`
+- `tools/lamp_extract/dbc_table.cpp`
+- `tools/lamp_extract/dbc_table.h`
+- `tools/lamp_extract/geometry.h`
+- `tools/lamp_extract/lamp_rules.cpp`
+- `tools/lamp_extract/lamp_rules.h`
+- `tools/lamp_extract/lamp_writer.cpp`
+- `tools/lamp_extract/lamp_writer.h`
+- `tools/lamp_extract/LICENSE-EVERWOOD-MIT`
+- `tools/lamp_extract/liquid_scan.cpp`
+- `tools/lamp_extract/liquid_scan.h`
+- `tools/lamp_extract/m2_lights.cpp`
+- `tools/lamp_extract/m2_lights.h`
+- `tools/lamp_extract/main.cpp`
+- `tools/lamp_extract/material_pack.cpp`
+- `tools/lamp_extract/material_rules.cpp`
+- `tools/lamp_extract/material_rules.h`
+- `tools/lamp_extract/png_reader.cpp`
+- `tools/lamp_extract/png_reader.h`
+- `tools/lamp_extract/relief_pack.cpp`
+- `tools/lamp_extract/relief_rules.cpp`
+- `tools/lamp_extract/relief_rules.h`
+- `tools/lamp_extract/wmo_lights.cpp`
+- `tools/lamp_extract/wmo_lights.h`
+- `tools/lamp_extract/world_scan.cpp`
+- `tools/lamp_extract/world_scan.h`
+
+## Files changed (25)
+
+- `CMakeLists.txt`
+- `CoAVolFog.ini`
+- `shaders/vf_common.hlsli`
+- `shaders/vf_composite.hlsl`
+- `shaders/vf_march.hlsl`
+- `shaders/vf_temporal.hlsl`
+- `src/CoAVolFog.def`
+- `src/config.cpp`
+- `src/config.h`
+- `src/d3d9_wrap.cpp`
+- `src/d3d9_wrap.h`
+- `src/dllmain.cpp`
+- `src/engine.cpp`
+- `src/engine.h`
+- `src/fog_model.cpp`
+- `src/fog_model.h`
+- `src/hooks.cpp`
+- `src/hooks.h`
+- `src/overlay.cpp`
+- `src/overlay.h`
+- `src/renderer.cpp`
+- `src/renderer.h`
+- `src/settings_panel.cpp`
+- `src/settings_panel.h`
+- `tests/harness.cpp`
+
+## CoAVolFog's files left out of this release (5)
+
+Data converted from the game's files and the script that converts it (this project distributes neither), and the
+original project's notes and repository settings:
+
+- `.github/CODEOWNERS`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `data/fogdata.bin`
+- `tools/convert_classic_fog.py`
