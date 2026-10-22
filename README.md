@@ -18,8 +18,8 @@ game's files.
 
 Each pair is the same moment with Lumenveil switched off (left) and on (right), using its compare key
 (Ctrl+F12). Weather, clouds and creatures can move a little between the two shots. The client they were taken
-on also runs fan-made HD texture packs and the ReShade preset described in [docs/RESHADE.md](docs/RESHADE.md), in
-both shots of each pair, so the left shot is not quite the game as it ships.
+on also runs the [Project Reforged](https://projectreforged.github.io/wotlk/) HD texture and model packs and the ReShade preset described in
+[docs/RESHADE.md](docs/RESHADE.md), in both shots of each pair, so the left shot is not quite the game as it ships.
 
 About half of the pairs were taken with a newer development build, which also draws the land beyond the view
 distance; that part is not in release 0.1.0.
@@ -191,6 +191,10 @@ the GNU GPL v2. The night lights, water, relief, wet surfaces, regions and much 
 colour and flicker rules are ported from **Everwood** (MIT). The settings window uses **Dear ImGui** (MIT), and the setup
 tool reads the game's archives with **libmpq** (GPL v2), **zlib** and **bzip2**. Full notices are in
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+The before-and-after screenshots were taken with the HD texture and model packs of
+**[Project Reforged](https://projectreforged.github.io/wotlk/)**, made by its community of modders and artists. They are a
+separate project and are not included in Lumenveil.
 
 ## License
 

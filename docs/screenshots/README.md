@@ -9,7 +9,8 @@ The README shows 45 before/after pairs from this folder:
 
 `NN` runs from `01` to `45`: `01` to `26` at night, `27` to `45` at dusk, dawn and day. The README shows the pairs
 without captions. The pairs here now were taken on a client that also runs
-fan-made HD texture packs and the ReShade preset of [docs/RESHADE.md](../RESHADE.md), in both shots of each pair;
+the [Project Reforged](https://projectreforged.github.io/wotlk/) HD texture and model packs and the ReShade preset of
+[docs/RESHADE.md](../RESHADE.md), in both shots of each pair;
 the README says so above the pairs. They are 1600 × 670 JPEGs at quality 85, without metadata.
 
 ## How the pairs are taken
