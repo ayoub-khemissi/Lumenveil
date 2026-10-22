@@ -74,7 +74,8 @@ float4 main(float2 vpos : VPOS) : COLOR0
                                    saturate(dot(normal, light)) * falloff * side);
         [branch] if (Gain() * dot(lit, kLuminanceWeights) > kMinOccludedLight)
             lit *= LampShadow(sDepthBefore, s.surface, WorldToViewDirection(toLamp), distance, kOcclusionPlace,
-                              kOcclusionSteps, kLampBodyYards, kShadowStartYards, kNoBody, kNoBody);
+                              kOcclusionSteps, kLampBodyYards, kShadowStartYards, kNoBody, kNoBody, float3(0, 0, 0),
+                              float2(-1, 0));
         glint += lit;
         slot += 1;
     }

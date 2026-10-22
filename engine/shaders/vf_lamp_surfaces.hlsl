@@ -24,6 +24,11 @@ static const float kWindowWrap = 0.1;
 static const float kThinFacingCode = 1;
 static const float kFacingCodeScale = 0.5;
 static const float3 kLuminanceWeights = float3(0.2126, 0.7152, 0.0722);
+static const float kGroundUpFrom = 0.35;
+static const float kGroundUpTo = 0.55;
+static const float kGroundStraightening = 0.9;
+static const float kReceiverClearanceYards = 0.2;
+static const float kReceiverClearancePerYard = 0.15;
 
 float SlotCount()
 {
@@ -35,6 +40,14 @@ float SunFacingCode(float4 normal)
     return normal.w > 0 ? kThinFacingCode : saturate(dot(normal.xyz, cSunInView.xyz)) * kFacingCodeScale;
 }
 
+float3 LitNormal(float4 normal)
+{
+    float3 up = normalize(mul((float3x3)cViewToWorld, float3(0, 0, 1)));
+    float ground = smoothstep(kGroundUpFrom, kGroundUpTo, dot(normal.xyz, up));
+    float straightening = normal.w > 0 ? 0 : kGroundStraightening * ground;
+    return normalize(lerp(normal.xyz, up, straightening));
+}
+
 float4 main(float2 targetPixel : VPOS) : COLOR0
 {
     float2 pixel = ViewportOrigin() + targetPixel + 0.5;
@@ -44,6 +57,7 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
     float3 surface = ViewRayAtUnitDepth(pixel) * LinearDepth(depth);
     float4 normal = SurfaceNormal(pixel, surface);
     float jitter = InterleavedGradientNoise(pixel);
+    float3 litNormal = LitNormal(normal);
 
     float2 tile = LampTileOf(cLampTiles, pixel);
     float listed = LampTileListed(sLampTiles, cLampTiles, tile);
@@ -70,7 +84,7 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
             float nearYards = emit.w != 0 ? abs(emit.w) : kNearYards;
             float spread = distanceSquared + nearYards * nearYards;
             float falloff = 1 / (kFalloffPerYard * sqrt(spread) + kFalloffPerSquareYard * spread);
-            float lambert = saturate((dot(normal.xyz, direction) + kWrap) / (1 + kWrap));
+            float lambert = saturate((dot(litNormal, direction) + kWrap) / (1 + kWrap));
             float facing = normal.w > 0 ? max(lambert, kThinFacing) : lambert;
             float outward = emit.w > 0 ? saturate((kWindowWrap - dot(emit.xyz, direction)) / (1 + kWindowWrap)) : 1;
             float window = saturate(1 - distanceSquared * distanceSquared / (reachSquared * reachSquared));
@@ -79,7 +93,10 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
             [branch] if (shadowed && dot(lit, kLuminanceWeights) > kMinShadowedLight)
                 lit *= lerp(1, LampShadow(sOccluderDepth, surface, toLamp, distance, jitter, kShadowSteps,
                                           carried ? emit.x : kLampBodyYards, carried ? emit.z : kShadowStartYards,
-                                          float4(cCarrierBase.xyz, lantern ? cCarrierBase.w : 0), cCarrierUp),
+                                          float4(cCarrierBase.xyz, lantern ? cCarrierBase.w : 0), cCarrierUp,
+                                          normal.w > 0 ? float3(0, 0, 0) : normal.xyz,
+                                          normal.w > 0 ? float2(-1, 0)
+                                                       : float2(kReceiverClearanceYards, kReceiverClearancePerYard)),
                             light.w);
             pointLight += lit;
         }

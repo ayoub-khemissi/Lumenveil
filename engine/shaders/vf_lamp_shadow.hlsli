@@ -9,7 +9,8 @@ static const float kOccluderThicknessPerViewZ = 0.02;
 static const float kMinSampleViewZ = 0.3;
 
 float LampShadow(sampler2D depthTexture, float3 start, float3 toLamp, float distance, float jitter, int steps,
-                 float clearYards, float startYards, float4 bodyBase, float4 bodyUp)
+                 float clearYards, float startYards, float4 bodyBase, float4 bodyUp, float3 receiverNormal,
+                 float2 receiverClearance)
 {
     float travel = saturate(1 - clearYards / max(distance, 1e-3));
     float3 path = toLamp * travel;
@@ -34,6 +35,8 @@ float LampShadow(sampler2D depthTexture, float3 start, float3 toLamp, float dist
                                 behind > kShadowBias + kShadowBiasPerViewZ * samplePosition.z &&
                                 behind < max(thickness, kOccluderThicknessPerViewZ * samplePosition.z) &&
                                 dot(fromLamp, fromLamp) > clearYards * clearYards &&
+                                dot(occluderPosition - start, receiverNormal) >
+                                    receiverClearance.x + receiverClearance.y * length(occluderPosition - start) &&
                                 !InsideBody(occluderPosition, bodyBase, bodyUp);
                 lit = occluder ? 0 : 1;
             }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 (2026-10-23)
+
+- Lamp light on the ground no longer shows the terrain's triangles: before it takes a lamp's light, each triangle
+  facing up to a 55 degree slope is straightened by the same share toward the vertical (fading out up to 70 degrees),
+  so neighbouring triangles get the same light. Walls are left alone.
+- The edges of neighbouring terrain triangles no longer cast lamp shadows on the ground: an occluder counts only when
+  it stands clearly above the lit spot's surface, as people, props and walls do.
+
 ## 0.1.0 (2026-10-21)
 
 The first public release.
