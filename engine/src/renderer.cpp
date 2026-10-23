@@ -11,6 +11,7 @@
 #include "water_lamps.h"
 #include "water_rain.h"
 #include "water_ripples.h"
+#include "water_textures.h"
 
 #include "ps_client_shadow.h"
 #include "ps_composite.h"
@@ -255,6 +256,22 @@ constexpr DWORD kWaterMemoryStage = 6;
 constexpr DWORD kWaterRainStage = 4;
 constexpr DWORD kWaterRippleStage = 3;
 constexpr DWORD kWaterLampStage = 7;
+constexpr DWORD kWaterBumpStage = 8;
+constexpr DWORD kWaterFoamStage = 9;
+constexpr DWORD kWaterFloorStage = 10;
+constexpr UINT kWaterExtraRegister = 31;
+constexpr UINT kWaterExtraConstants = 9;
+constexpr int kWaterBandExtra = 4;
+constexpr int kWaterBandSwitchExtra = 8;
+constexpr float kWaterSeaProbeYards[] = {0.0f, 20.0f, 60.0f, 150.0f};
+constexpr float kWaterMinWetShare = 0.01f;
+constexpr double kWaterSeaShareSeconds = 1.0;
+constexpr float kWaterBumpGain = 0.25f;
+constexpr double kWaterBumpTiles[2] = {24.0, 41.0};
+constexpr double kWaterBumpSpeeds[2] = {0.15, 0.1};
+constexpr double kWaterBumpTurns[2] = {0.0, 0.7};
+constexpr double kWaterFoamTile = 6.0;
+constexpr double kWaterFoamSpeed = 0.1;
 constexpr UINT kWaterMemorySize = 1024;
 constexpr float kWaterMemoryForgetYards = 200.0f;
 constexpr double kWaterMemoryForgetSeconds = 30.0;
@@ -273,6 +290,17 @@ static_assert(kWaterLampStage < kStages && kWaterLampStage != kWaterDepthBeforeS
 static_assert(kWaterLampTableRows == 3, "vf_water_lamps.hlsl reads three rows per lamp");
 static_assert(kWaterMemoryStage > kWaterSlopeStage && kWaterMemoryStage < kStages,
               "the memory is bound after the slopes, on a stage the state block covers");
+static_assert(kWaterBumpStage >= kWaterWaveStage + kWaterWaveLayers && kWaterBumpStage != kWaterLampStage &&
+                  kWaterFoamStage != kWaterLampStage && kWaterBumpStage < kStages && kWaterFoamStage < kStages,
+              "the water's bump and foam textures sit on stages of their own that the state block covers");
+static_assert(kWaterExtraRegister > kWaterLampRegister &&
+                  kWaterExtraRegister + kWaterExtraConstants <= kPixelConstants,
+              "vf_water_slope.hlsl and vf_water.hlsl read the bump and foam constants from c31-c34 and vf_water.hlsl "
+              "the water colours from c35-c39, covered by the state block");
+static_assert(kWaterExtraRegister + kWaterBandExtra == 35 && kWaterBandSwitchExtra == kWaterExtraConstants - 1,
+              "vf_water.hlsl reads the river and ocean colours from c35-c38 and their switches from c39");
+static_assert(kWaterFloorStage < kStages && kWaterFloorStage != kWaterFoamStage && kWaterFloorStage > kWaterBumpStage,
+              "the fog banks' floor map sits on a stage of its own in the water's body pass");
 static_assert(kWaterMemoryRegister == 24, "vf_water_memory.hlsli reads the memory constants from c24 and c25");
 static_assert(kWaterRainRegister == 26, "vf_water_rings.hlsli reads the rain constants from c26 and c27");
 static_assert(kWaterRippleRegister == 28, "vf_water_rings.hlsli reads the ripple constants from c28 and c29");
@@ -418,6 +446,33 @@ bool FloorMapWanted(const Config& cfg)
     return cfg.banks != kBanksOff || cfg.fogCeiling > 0.0f;
 }
 
+bool SeaShareNear(const FrameInputs& in, float& share)
+{
+    const LiquidSource liquids = CurrentLiquidSource();
+    if (!liquids.probe)
+        return false;
+    float ahead[2] = {in.camTarget[0] - in.camPos[0], in.camTarget[1] - in.camPos[1]};
+    const float length = std::sqrt(ahead[0] * ahead[0] + ahead[1] * ahead[1]);
+    for (float& a : ahead)
+        a = length > 0.0f ? a / length : 0.0f;
+    float lake = 0.0f;
+    float sea = 0.0f;
+    for (float yards : kWaterSeaProbeYards)
+    {
+        LiquidAt liquid = {};
+        if (liquids.probe(liquids.context, in.mapId, in.camPos[0] + ahead[0] * yards, in.camPos[1] + ahead[1] * yards,
+                          liquid))
+        {
+            lake += liquid.lake;
+            sea += liquid.sea;
+        }
+    }
+    if (!(lake + sea > kWaterMinWetShare))
+        return false;
+    share = sea / (lake + sea);
+    return true;
+}
+
 struct BankConstants
 {
     Float4 floor;
@@ -553,6 +608,46 @@ char DepthClassLetter(float depthClass)
 double Wrapped(double textureCoordinate)
 {
     return textureCoordinate - std::floor(textureCoordinate);
+}
+
+IDirect3DTexture9* TextureFromBlp(IDirect3DDevice9* dev, const BlpImage& image)
+{
+    IDirect3DTexture9* texture = nullptr;
+    if (FAILED(dev->CreateTexture(image.width, image.height, static_cast<UINT>(image.levels.size()), 0, image.format,
+                                  D3DPOOL_MANAGED, &texture, nullptr)))
+        return nullptr;
+    UINT height = image.height;
+    for (UINT level = 0; level < image.levels.size(); ++level)
+    {
+        D3DLOCKED_RECT locked = {};
+        if (FAILED(texture->LockRect(level, &locked, nullptr, 0)))
+        {
+            SafeRelease(texture);
+            return nullptr;
+        }
+        const UINT rows = image.format == D3DFMT_A8R8G8B8 ? height : std::max(1u, (height + 3) / 4);
+        const std::vector<uint8_t>& texels = image.levels[level];
+        const size_t rowBytes = texels.size() / rows;
+        for (UINT row = 0; row < rows; ++row)
+            std::memcpy(static_cast<unsigned char*>(locked.pBits) + static_cast<size_t>(row) * locked.Pitch,
+                        texels.data() + static_cast<size_t>(row) * rowBytes, rowBytes);
+        texture->UnlockRect(level);
+        height = std::max(1u, height / 2);
+    }
+    return texture;
+}
+
+void BindWrapped(IDirect3DDevice9* dev, DWORD stage, IDirect3DTexture9* texture, DWORD anisotropy)
+{
+    dev->SetTexture(stage, texture);
+    dev->SetSamplerState(stage, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
+    dev->SetSamplerState(stage, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+    dev->SetSamplerState(stage, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+    dev->SetSamplerState(stage, D3DSAMP_MINFILTER, anisotropy > 1 ? D3DTEXF_ANISOTROPIC : D3DTEXF_LINEAR);
+    dev->SetSamplerState(stage, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+    dev->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, anisotropy);
+    dev->SetSamplerState(stage, D3DSAMP_SRGBTEXTURE, FALSE);
+    dev->SetSamplerState(stage, D3DSAMP_MAXMIPLEVEL, 0);
 }
 
 float HalfToFloat(uint16_t half)
@@ -803,6 +898,9 @@ void Renderer::ReleaseAll()
     m_bankFloorFailed = false;
     SafeRelease(m_waterRainTable);
     m_waterRainFailed = false;
+    SafeRelease(m_waterBump);
+    SafeRelease(m_waterFoam);
+    m_waterTexturesMade = false;
 }
 
 void Renderer::LogLightChange(const FrameInputs& in, const AuthoredFog& fog, bool authored)
@@ -3378,6 +3476,18 @@ bool Renderer::DrawWaterWaves(IDirect3DDevice9* dev, const WaterWaveField& field
     return ok || Skip("water wave targets could not be bound");
 }
 
+void Renderer::EnsureWaterTextures(IDirect3DDevice9* dev)
+{
+    if (m_waterTexturesMade)
+        return;
+    m_waterTexturesMade = true;
+    const WaterTextureFiles& files = GlobalWaterTextureFiles();
+    m_waterBump = files.Bump() ? TextureFromBlp(dev, *files.Bump()) : nullptr;
+    m_waterFoam = files.Foam() ? TextureFromBlp(dev, *files.Foam()) : nullptr;
+    VF_LOG_INFO("water: bump %s, foam %s", m_waterBump ? "ready" : (files.Bump() ? "not made" : "absent"),
+                m_waterFoam ? "ready" : (files.Foam() ? "not made" : "absent"));
+}
+
 void Renderer::BindWaterWaves(IDirect3DDevice9* dev)
 {
     for (int layer = 0; layer < kWaterWaveLayers; ++layer)
@@ -4184,6 +4294,7 @@ bool Renderer::DrawWater(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture,
     if (!CopyWaterScene(dev, target, m_waterScene[1], vp))
         return Skip("water scene copy failed");
     PrepareFullscreenPasses(dev);
+    EnsureWaterTextures(dev);
     CopyWaterDepth(dev, depthTexture, m_waterDepth[1], vp, depthDesc);
 
     const WaterParams water = BuildWaterParams(in, cfg);
@@ -4230,7 +4341,7 @@ bool Renderer::DrawWater(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture,
         {water.skyHorizon[0], water.skyHorizon[1], water.skyHorizon[2], in.fogStart},
         {water.skyZenith[0], water.skyZenith[1], water.skyZenith[2], 1.0f / std::max(in.fogEnd - in.fogStart, 1.0f)},
         {terrain.uvAtCamera[0], terrain.uvAtCamera[1], terrain.uvPerYard, terrain.sharpness},
-        {0.0f, 0.0f, in.camPos[2],
+        {water.smooth, 0.0f, in.camPos[2],
          WaterBaseRoughness(m_waterField)},
     };
     static_assert(kWaterRegister + 7 == kWaterLookupRegister, "the wave lookups follow the water constants");
@@ -4255,6 +4366,56 @@ bool Renderer::DrawWater(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture,
     c[kWaterTurnRegister][2] = static_cast<float>(std::cos(secondTurn));
     c[kWaterTurnRegister][3] = static_cast<float>(std::sin(secondTurn));
     const bool memory = (water.reflect > 0.0f || water.glitter > 0.0f) && UpdateWaterMemory(dev, in, cfg, c);
+    const float bump = m_waterBump ? cfg.waterBump * kWaterBumpGain : 0.0f;
+    const float foam = m_waterFoam ? cfg.waterFoam : 0.0f;
+    float extras[kWaterExtraConstants][4] = {};
+    const bool floors = water.smooth > 0.0f && terrainMap && FloorMapWanted(cfg) && m_terrain.FloorsKnown() &&
+                        UploadBankFloors(dev);
+    if (water.smooth > 0.0f)
+    {
+        float nearby = 0.0f;
+        if (SeaShareNear(in, nearby))
+        {
+            const double elapsed = m_waterSeaSeconds > 0.0 ? std::max(in.seconds - m_waterSeaSeconds, 0.0) : 1.0e9;
+            m_waterSeaShare += (nearby - m_waterSeaShare) *
+                               static_cast<float>(1.0 - std::exp(-elapsed / kWaterSeaShareSeconds));
+        }
+        m_waterSeaSeconds = in.seconds;
+        std::memcpy(extras[kWaterBandExtra], water.riverShallow, sizeof(water.riverShallow));
+        std::memcpy(extras[kWaterBandExtra + 1], water.riverDeep, sizeof(water.riverDeep));
+        std::memcpy(extras[kWaterBandExtra + 2], water.oceanShallow, sizeof(water.oceanShallow));
+        std::memcpy(extras[kWaterBandExtra + 3], water.oceanDeep, sizeof(water.oceanDeep));
+        extras[kWaterBandSwitchExtra][0] = floors ? 1.0f : 0.0f;
+        extras[kWaterBandSwitchExtra][1] = m_waterSeaShare;
+        extras[kWaterBandSwitchExtra][2] = cfg.stockFog == 0 ? 1.0f : 0.0f;
+        m_waterSmoothFrames += 1;
+        m_waterFloorFrames += floors ? 1 : 0;
+    }
+    if (bump > 0.0f || foam > 0.0f)
+    {
+        const double toNorth = std::cos(water.windDirection * kPi / 180.0);
+        const double toWest = -std::sin(water.windDirection * kPi / 180.0);
+        for (int layer = 0; layer < 2; ++layer)
+        {
+            const double turnCos = std::cos(kWaterBumpTurns[layer]);
+            const double turnSin = std::sin(kWaterBumpTurns[layer]);
+            const double travel = water.windSpeed * kWaterBumpSpeeds[layer] * in.seconds;
+            const double north = (toNorth * turnCos - toWest * turnSin) * travel;
+            const double west = (toNorth * turnSin + toWest * turnCos) * travel;
+            extras[0][2 * layer] = static_cast<float>(Wrapped((in.camPos[0] - north) / kWaterBumpTiles[layer]));
+            extras[0][2 * layer + 1] = static_cast<float>(Wrapped((in.camPos[1] - west) / kWaterBumpTiles[layer]));
+        }
+        const double foamTravel = water.windSpeed * kWaterFoamSpeed * in.seconds;
+        extras[1][0] = static_cast<float>(1.0 / kWaterBumpTiles[0]);
+        extras[1][1] = static_cast<float>(1.0 / kWaterBumpTiles[1]);
+        extras[1][2] = bump;
+        extras[1][3] = foam;
+        extras[2][0] = static_cast<float>(Wrapped((in.camPos[0] - toNorth * foamTravel) / kWaterFoamTile));
+        extras[2][1] = static_cast<float>(Wrapped((in.camPos[1] - toWest * foamTravel) / kWaterFoamTile));
+        extras[2][2] = static_cast<float>(1.0 / kWaterFoamTile);
+        extras[3][0] = GlobalWaterTextureFiles().BumpBias()[0];
+        extras[3][1] = GlobalWaterTextureFiles().BumpBias()[1];
+    }
 
     SetTarget(dev, m_waterSlopes);
     dev->SetDepthStencilSurface(boundDepthStencil);
@@ -4269,8 +4430,11 @@ bool Renderer::DrawWater(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture,
     dev->SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
     dev->SetPixelShader(m_waterSlopeShader);
     dev->SetPixelShaderConstantF(0, &c[0][0], kWaterConstants);
+    dev->SetPixelShaderConstantF(kWaterExtraRegister, &extras[0][0], kWaterExtraConstants);
     BindTexture(dev, kWaterDepthAfterStage, m_waterDepth[1], false);
     BindWaterWaves(dev);
+    if (bump > 0.0f)
+        BindWrapped(dev, kWaterBumpStage, m_waterBump, m_waterAnisotropy);
     if (rain > 0.0f)
         BindTexture(dev, kWaterRainStage, m_waterRainTable, false);
     if (ripples.ripples[0] > 0.0f)
@@ -4285,6 +4449,10 @@ bool Renderer::DrawWater(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture,
     BindTexture(dev, kWaterSceneBeforeStage, m_waterScene[0], true);
     BindTexture(dev, kWaterSceneAfterStage, m_waterScene[1], false);
     BindTexture(dev, kWaterSlopeStage, m_waterSlopes, false);
+    if (foam > 0.0f)
+        BindWrapped(dev, kWaterFoamStage, m_waterFoam, m_waterAnisotropy);
+    if (floors)
+        BindTexture(dev, kWaterFloorStage, m_bankFloorTexture, m_bankFloorFilterable);
     if (!m_waterQuery && !m_waterQueryFailed && FAILED(dev->CreateQuery(D3DQUERYTYPE_OCCLUSION, &m_waterQuery)))
     {
         m_waterQuery = nullptr;
@@ -4343,6 +4511,16 @@ void Renderer::LogWater(const FrameInputs& in, const Config& cfg)
                 "wave textures, %.3f finer than their shortest %.1f yd",
                 field.windSpeed, field.headingDegrees, field.peakYards, std::sqrt(field.resolvedMeanSquareSlope),
                 std::sqrt(field.unresolvedMeanSquareSlope), kWaterWaveLayerSpecs[kWaterWaveLayers - 1].shortestYards);
+    if (m_waterSmoothFrames)
+        VF_LOG_INFO("  water colours (WaterSmooth %.2f): river %06X at %.2f to %06X at %.2f, ocean %06X at %.2f to "
+                    "%06X at %.2f; sea share near the camera %.2f; river or sea per pixel from the floor map in %u of "
+                    "%u frames",
+                    water.smooth, in.waterBandColors[kRiverShallowColour] & 0xFFFFFFu,
+                    in.waterBandAlphas[kRiverShallowAlpha], in.waterBandColors[kRiverDeepColour] & 0xFFFFFFu,
+                    in.waterBandAlphas[kRiverDeepAlpha], in.waterBandColors[kOceanShallowColour] & 0xFFFFFFu,
+                    in.waterBandAlphas[kOceanShallowAlpha], in.waterBandColors[kOceanDeepColour] & 0xFFFFFFu,
+                    in.waterBandAlphas[kOceanDeepAlpha], m_waterSeaShare, m_waterFloorFrames, m_waterSmoothFrames);
+    m_waterSmoothFrames = m_waterFloorFrames = 0;
     if (m_waterRainShare > 0.0f)
         VF_LOG_INFO("  water rain: rings from up to %.0f%% of the drop slots at strength %.2f, the water %.3f rougher "
                     "(slope rms) where the rings are too small to draw",

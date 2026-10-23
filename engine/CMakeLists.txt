@@ -185,6 +185,7 @@ add_library(CoAVolFog SHARED
     src/water_rain.cpp
     src/water_ripples.cpp
     src/water_rings.cpp
+    src/water_textures.cpp
     src/water_waves.cpp
     src/wet_surfaces.cpp
     src/world_controls.cpp

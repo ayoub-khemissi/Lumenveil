@@ -21321,6 +21321,145 @@ void CheckPlainGame(Harness& h, const Config& cfg, const float* proj, const D3DV
           "settings themselves untouched");
 }
 
+constexpr float kGrainTileYards = 1.0f;
+constexpr float kGrainFar = 120.0f;
+constexpr float kGrainHalfWidth = 30.0f;
+constexpr DWORD kWaterGrainColour = 0xB0A0C8D0;
+constexpr DWORD kRiverShallowBand = 0xFF5A3D1D;
+constexpr DWORD kRiverDeepBand = 0xFF3E7D90;
+constexpr DWORD kOceanShallowBand = 0xFF4EA9A9;
+constexpr DWORD kOceanDeepBand = 0xFF2F7782;
+constexpr float kBandShallowAlpha = 0.5f;
+constexpr float kBandDeepAlpha = 1.0f;
+constexpr float kOceanDeepestValue = 0.9f;
+constexpr Vec3 kGrainDeepSpot = {55.0f, 0.0f, kWaterLevel};
+constexpr Vec3 kGrainPebbleSpot = {26.0f, 2.0f, kWaterLevel};
+constexpr Vec3 kGrainSandSpot = {26.0f, 6.0f, kWaterLevel};
+constexpr int kGrainBox = 10;
+constexpr int kGrainSpotBox = 1;
+constexpr double kSeaShareSettleSeconds = 100.0;
+
+WaterScene GrainyWaterScene()
+{
+    WaterScene s = BuildWaterScene(kWaterFar);
+    const float w = kWaterSceneHalfWidth;
+    s.water.clear();
+    for (int i = 0; kWaterNear + i * kGrainTileYards < kGrainFar; ++i)
+        for (int j = 0; -kGrainHalfWidth + j * kGrainTileYards < kGrainHalfWidth; ++j)
+        {
+            const float x = kWaterNear + i * kGrainTileYards;
+            const float y = -kGrainHalfWidth + j * kGrainTileYards;
+            AddFlat(s.water, x, y, x + kGrainTileYards, y + kGrainTileYards, kWaterLevel,
+                    (i + j) % 2 ? kWaterGrainColour : kWaterSurfaceColour);
+        }
+    AddFlat(s.water, kWaterNear, -w, kGrainFar, -kGrainHalfWidth, kWaterLevel, kWaterSurfaceColour);
+    AddFlat(s.water, kWaterNear, kGrainHalfWidth, kGrainFar, w, kWaterLevel, kWaterSurfaceColour);
+    AddFlat(s.water, kGrainFar, -w, kWaterFar, w, kWaterLevel, kWaterSurfaceColour);
+    return s;
+}
+
+bool ProbeSeaShare(void* context, int, float, float, LiquidAt& liquid)
+{
+    const float sea = *static_cast<const float*>(context);
+    liquid = {kWaterLevel + kGameLikeWorldOffset.z, 1.0f - sea, sea};
+    return true;
+}
+
+float LumaSpread(const Image& img, ScreenPoint p, int radius)
+{
+    const float mean = LumaAround(img, p, radius);
+    double sum = 0.0;
+    int n = 0;
+    for (int y = static_cast<int>(p.y) - radius; y <= static_cast<int>(p.y) + radius; ++y)
+        for (int x = static_cast<int>(p.x) - radius; x <= static_cast<int>(p.x) + radius; ++x)
+        {
+            const double d = img.Luma(x, y) - mean;
+            sum += d * d;
+            ++n;
+        }
+    return static_cast<float>(std::sqrt(sum / n));
+}
+
+int LargestStepFrom(const Image& img, ScreenPoint p, int radius, DWORD colour, float value)
+{
+    const int expected[3] = {static_cast<int>(std::lround((colour & 0xFF) * value)),
+                             static_cast<int>(std::lround(((colour >> 8) & 0xFF) * value)),
+                             static_cast<int>(std::lround(((colour >> 16) & 0xFF) * value))};
+    int worst = 0;
+    for (UINT y = p.y - radius; y <= p.y + radius; ++y)
+        for (UINT x = p.x - radius; x <= p.x + radius; ++x)
+            for (int ch = 0; ch < 3; ++ch)
+                worst = std::max(worst, std::abs(img.At(x, y)[ch] - expected[ch]));
+    return worst;
+}
+
+void CheckWaterSmooth(Harness& h, const Config& cfg, const float* proj, const D3DVIEWPORT9& world,
+                      const std::wstring& outDir)
+{
+    Config textured = WaterKeys(cfg, 0.0f, 0.0f, 0.0f, 0.0f);
+    textured.debugView = 0;
+    textured.waterSmooth = 0.0f;
+    textured.waterBump = 0.0f;
+    textured.waterFoam = 0.0f;
+    Config smooth = textured;
+    smooth.waterSmooth = 1.0f;
+    const WaterScene grainy = GrainyWaterScene();
+    WaterScene dry = grainy;
+    dry.water.clear();
+    const WaterView v = MakeWaterView(h, proj, world, {0.0f, 0.0f, 12.0f}, {100.0f, 0.0f, 1.0f});
+    FrameInputs day = v.Inputs();
+    day.waterBandColors[kOceanShallowColour] = kOceanShallowBand;
+    day.waterBandColors[kOceanDeepColour] = kOceanDeepBand;
+    day.waterBandColors[kRiverShallowColour] = kRiverShallowBand;
+    day.waterBandColors[kRiverDeepColour] = kRiverDeepBand;
+    day.waterBandAlphas[kRiverShallowAlpha] = kBandShallowAlpha;
+    day.waterBandAlphas[kRiverDeepAlpha] = kBandDeepAlpha;
+    day.waterBandAlphas[kOceanShallowAlpha] = kBandShallowAlpha;
+    day.waterBandAlphas[kOceanDeepAlpha] = kBandDeepAlpha;
+    float sea = 0.0f;
+    vf_test_set_height_source(nullptr, nullptr);
+    vf_test_set_liquid_source(&ProbeSeaShare, &sea);
+
+    const Image bare = RenderWater(v, textured, day, dry, Liquid::Untouched);
+    const Image asDrawn = RenderWater(v, textured, day, grainy);
+    const Image river = RenderWater(v, smooth, day, grainy);
+    sea = 1.0f;
+    FrameInputs atSea = day;
+    atSea.seconds += kSeaShareSettleSeconds;
+    const Image ocean = RenderWater(v, smooth, atSea, grainy);
+    sea = 0.0f;
+    atSea.seconds += kSeaShareSettleSeconds;
+    RenderWater(v, smooth, atSea, grainy);
+    vf_test_set_liquid_source(nullptr, nullptr);
+    SavePng(outDir + L"\\water-smooth-textured.png", asDrawn.w, asDrawn.h, asDrawn.bgra);
+    SavePng(outDir + L"\\water-smooth.png", river.w, river.h, river.bgra);
+
+    const ScreenPoint deep = v.At(kGrainDeepSpot);
+    const float grainAsDrawn = LumaSpread(asDrawn, deep, kGrainBox);
+    const float grainSmooth = LumaSpread(river, deep, kGrainBox);
+    const int riverStep = LargestStepFrom(river, deep, kGrainBox, kRiverDeepBand, 1.0f);
+    const int oceanStep = LargestStepFrom(ocean, deep, kGrainBox, kOceanDeepBand, kOceanDeepestValue);
+    std::printf("     smooth water, %dx%d px around (%u %u) over 22 yd of water: luma spread %.4f with the game's "
+                "texture, %.4f smoothed; largest step from the river's deep colour %d/255, from the sea's %d/255\n",
+                2 * kGrainBox + 1, 2 * kGrainBox + 1, deep.x, deep.y, grainAsDrawn, grainSmooth, riverStep,
+                oceanStep);
+    Check(grainAsDrawn > 0.02f && grainSmooth < 0.1f * grainAsDrawn,
+          "water: WaterSmooth leaves none of the game's animated water texture");
+    Check(riverStep <= 2 && oceanStep <= 2,
+          "water: WaterSmooth gives deep water the game's deep colour for the hour, the river's on rivers and lakes "
+          "and the sea's, a tenth darker, on the sea");
+
+    const ScreenPoint pebble = v.At(kGrainPebbleSpot);
+    const ScreenPoint sand = v.At(kGrainSandSpot);
+    const float bareContrast = LumaAround(bare, sand, kGrainSpotBox) - LumaAround(bare, pebble, kGrainSpotBox);
+    const float smoothContrast = LumaAround(river, sand, kGrainSpotBox) - LumaAround(river, pebble, kGrainSpotBox);
+    std::printf("     smooth water 1 yd deep over sand and pebbles at (%u %u) and (%u %u): %.3f luma between them, "
+                "%.3f without the water\n",
+                sand.x, sand.y, pebble.x, pebble.y, smoothContrast, bareContrast);
+    Check(bareContrast > 0.1f && smoothContrast > 0.1f * bareContrast && smoothContrast < 0.5f * bareContrast,
+          "water: shallow smooth water shows the bottom through the game's shallow colour");
+}
+
 void CheckWater(Harness& h, const Config& cfg, const float* proj, const D3DVIEWPORT9& world,
                 const std::wstring& outDir)
 {
@@ -21330,6 +21469,7 @@ void CheckWater(Harness& h, const Config& cfg, const float* proj, const D3DVIEWP
     CheckWaterLamps(h, cfg, proj, world, outDir);
     CheckWaterMemory(h, cfg, proj, world, outDir);
     CheckWaterForeground(h, cfg, proj, world, outDir);
+    CheckWaterSmooth(h, cfg, proj, world, outDir);
     Config base = cfg;
     base.debugView = 0;
     const Config off = WaterKeys(base, 0.0f, 0.0f, 0.0f, 1.0f);

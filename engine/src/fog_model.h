@@ -132,10 +132,20 @@ struct FogParams
     bool authored;
 };
 
+constexpr int kOceanShallowColour = 0;
+constexpr int kOceanDeepColour = 1;
+constexpr int kRiverShallowColour = 2;
+constexpr int kRiverDeepColour = 3;
+constexpr int kRiverShallowAlpha = 0;
+constexpr int kRiverDeepAlpha = 1;
+constexpr int kOceanShallowAlpha = 2;
+constexpr int kOceanDeepAlpha = 3;
+
 struct WaterParams
 {
     float reflect;
     float clarity;
+    float smooth;
     float waves;
     float windSpeed;
     float windDirection;
@@ -143,6 +153,10 @@ struct WaterParams
     float glitterColor[3];
     float skyHorizon[3];
     float skyZenith[3];
+    float riverShallow[4];
+    float riverDeep[4];
+    float oceanShallow[4];
+    float oceanDeep[4];
 };
 
 struct ZoneClimateWeights

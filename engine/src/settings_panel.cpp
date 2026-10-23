@@ -615,6 +615,17 @@ bool DrawWater(Config& c)
     changed |= Slider("Clarity", c.waterClarity, 0.0f, 1.0f, "%.2f",
                       "See the bottom through shallow water, and a deeper teal where the water gets deep. "
                       "0 = the game's own water colour");
+    changed |= Slider("Smooth", c.waterSmooth, 0.0f, 1.0f, "%.2f",
+                      "The game's animated water texture under the reflections is replaced by the zone's own water "
+                      "colours, shallow to deep, rivers and lakes apart from the sea, so the water reads as one smooth "
+                      "surface that the waves and reflections play on. 0 = the game's texture as drawn");
+    changed |= Slider("Bump", c.waterBump, 0.0f, 2.0f, "%.2f",
+                      "Fine ripples from the later clients' water normal map (waterbump.blp, copied from the game's "
+                      "archives by Lumenveil-Setup.cmd) drift with the wind over the waves and bend the reflections. "
+                      "0 = off");
+    changed |= Slider("Foam", c.waterFoam, 0.0f, 2.0f, "%.2f",
+                      "Foam where the water is shallow along the shores, from the later clients' foam texture "
+                      "(waterfoam.blp, copied by Lumenveil-Setup.cmd), drifting with the wind. 0 = off");
     changed |= Slider("Waves", c.waterWaves, 0.0f, 2.0f, "%.2f",
                       "Small waves that break up the reflections and the glitter; higher in rain, snow or sand. "
                       "0 = a still mirror");

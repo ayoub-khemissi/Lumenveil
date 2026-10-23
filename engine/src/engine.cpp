@@ -57,6 +57,8 @@ constexpr uintptr_t kDirectColor = 0x00D38BD8;
 constexpr uintptr_t kSunColor = 0x00D38BF8;
 constexpr uintptr_t kSkyAboveHorizonColor = 0x00D38BEC;
 constexpr uintptr_t kSkyHorizonColor = 0x00D38BF0;
+constexpr uintptr_t kWaterBandColors = 0x00D38C0C;
+constexpr uintptr_t kWaterBandAlphas = 0x00D38C40;
 constexpr uintptr_t kZoneFogDistance = 0x00D38C1C;
 constexpr uintptr_t kSunPosition = 0x00D38E28;
 constexpr uintptr_t kMoonPosition = 0x00D38E48;
@@ -699,6 +701,9 @@ bool BuildFrameInputsUnsafe(FrameInputs& out)
     out.zoneId = g_zoneReaderEnabled ? Read<int32_t>(kZoneId) : -1;
     out.skyHorizonColor = Read<uint32_t>(kSkyHorizonColor);
     out.skyAboveHorizonColor = Read<uint32_t>(kSkyAboveHorizonColor);
+    for (int band = 0; band < 4; ++band)
+        out.waterBandColors[band] = Read<uint32_t>(kWaterBandColors + band * sizeof(uint32_t));
+    ReadFloats(kWaterBandAlphas, out.waterBandAlphas, 4);
     out.lightParams = ReadLightParamsSelection();
     out.indoors = ReadIndoorWeight(out.seconds);
     ReadPlayer(out);

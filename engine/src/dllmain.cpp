@@ -16,6 +16,7 @@
 #include "renderer.h"
 #include "spots.h"
 #include "terrain_shadow.h"
+#include "water_textures.h"
 
 #include <windows.h>
 
@@ -130,6 +131,7 @@ void Attach(HMODULE module)
     GlobalLampCatalog().Load(dir + "lampdata.bin");
     GlobalReliefCatalog().Load(dir + "reliefdata.bin");
     GlobalMaterialCatalog().Load(dir + "materialdata.bin");
+    GlobalWaterTextureFiles().Load(dir + "Lumenveil\\");
     if (GlobalLiquidMap().Load(dir + "liquiddata.bin"))
         SetLiquidSource(&LiquidMap::Probe, &GlobalLiquidMap());
 

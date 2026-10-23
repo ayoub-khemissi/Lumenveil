@@ -142,6 +142,9 @@ const FloatSetting kFloatSettings[] = {
     {"WaterReflect", &Config::waterReflect, 0.0f, 2.0f},
     {"WaterGlitter", &Config::waterGlitter, 0.0f, 4.0f},
     {"WaterClarity", &Config::waterClarity, 0.0f, 1.0f},
+    {"WaterSmooth", &Config::waterSmooth, 0.0f, 1.0f},
+    {"WaterBump", &Config::waterBump, 0.0f, 2.0f},
+    {"WaterFoam", &Config::waterFoam, 0.0f, 2.0f},
     {"WaterWaves", &Config::waterWaves, 0.0f, 2.0f},
     {"WaterRain", &Config::waterRain, 0.0f, 2.0f},
     {"SurfaceSheen", &Config::surfaceSheen, 0.0f, 2.0f},
@@ -996,9 +999,11 @@ bool ConfigStore::ReloadIfChanged()
                 m_config.weatherShafts, m_config.weatherTint, m_config.weatherSky, m_config.rainInFront, m_config.twilight, m_config.skyboxMoons ? 1 : 0, m_config.sunAndMoon, m_config.lightGlow,
                 m_config.glowThreshold, m_config.lampFog, m_config.lampCount, m_config.lampFlicker,
                 m_config.fireStrength, m_config.lampIndoors, m_config.lampLight, m_config.lampDayLight, m_config.lampShadows, m_config.carriedShadows, m_config.nightDarkness, m_config.windowLight);
-    VF_LOG_INFO("  water: reflect=%.2f glitter=%.2f clarity=%.2f waves=%.2f rain=%.2f memory=%d",
-                m_config.waterReflect, m_config.waterGlitter, m_config.waterClarity, m_config.waterWaves,
-                m_config.waterRain, m_config.waterMemory ? 1 : 0);
+    VF_LOG_INFO("  water: reflect=%.2f glitter=%.2f clarity=%.2f smooth=%.2f bump=%.2f foam=%.2f waves=%.2f "
+                "rain=%.2f memory=%d",
+                m_config.waterReflect, m_config.waterGlitter, m_config.waterClarity, m_config.waterSmooth,
+                m_config.waterBump, m_config.waterFoam, m_config.waterWaves, m_config.waterRain,
+                m_config.waterMemory ? 1 : 0);
     VF_LOG_INFO("  wet surfaces: sheen=%.2f wet=%.2f puddles=%.2f materials=%d", m_config.surfaceSheen,
                 m_config.wetSurfaces, m_config.puddles, m_config.terrainMaterials ? 1 : 0);
     VF_LOG_INFO("  lantern=%d light=%.2f halo=%.2f swing=%.2f key=%s effects=%.2f corpses=%.2f spotkey=%s",

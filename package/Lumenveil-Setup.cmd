@@ -29,7 +29,7 @@ echo This takes one to five minutes. Nothing is changed in your game files and n
 echo Language: %LOCALE%
 echo.
 
-echo [1/2] Lamps, torches, braziers and windows...
+echo [1/3] Lamps, torches, braziers and windows...
 "Lumenveil\lamp_extract.exe" --data "%~dp0Data" --out "%~dp0lampdata.bin" --locale %LOCALE% --background > "Lumenveil\setup-lamps.log" 2>&1
 if errorlevel 1 (
   echo Failed. The details are in Lumenveil\setup-lamps.log.
@@ -37,10 +37,18 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [2/2] Lakes and the sea...
+echo [2/3] Lakes and the sea...
 "Lumenveil\lamp_extract.exe" --data "%~dp0Data" --liquids "%~dp0liquiddata.bin" --maps 0,1,530,571 --locale %LOCALE% --background > "Lumenveil\setup-water.log" 2>&1
 if errorlevel 1 (
   echo Failed. The details are in Lumenveil\setup-water.log.
+  pause
+  exit /b 1
+)
+
+echo [3/3] Water ripples and foam, when your game's archives hold them...
+"Lumenveil\lamp_extract.exe" --data "%~dp0Data" --water-textures "%~dp0Lumenveil" --locale %LOCALE% > "Lumenveil\setup-water-textures.log" 2>&1
+if errorlevel 1 (
+  echo Failed. The details are in Lumenveil\setup-water-textures.log.
   pause
   exit /b 1
 )

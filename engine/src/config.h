@@ -261,6 +261,9 @@ struct Config
     float waterReflect = 1.0f;
     float waterGlitter = 1.0f;
     float waterClarity = 0.6f;
+    float waterSmooth = 0.0f;
+    float waterBump = 0.0f;
+    float waterFoam = 0.0f;
     float waterWaves = 1.0f;
     float waterRain = 1.0f;
     bool waterMemory = true;

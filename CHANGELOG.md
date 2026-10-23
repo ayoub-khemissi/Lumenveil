@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.1 (2026-10-23)
+
+- Water in the style of the later clients' high quality:
+  - `WaterSmooth` (0-1, settings window: Water > Smooth): the game's animated water texture under the reflections
+    gives way to the zone's own water colours, the shallow and deep ones and their transparency that the game's light
+    settings give each hour, the river ones on rivers and lakes and the sea ones on the sea (told apart per spot from
+    `liquiddata.bin`). The water gets the shallow colour over the bottom near the shore and the deep one, opaque, from
+    3 yards down (8 at sea); where it is under 0.6 yards deep the bottom shows through, so the shore fades instead of
+    ending on a hard edge. The log's water line names the colours.
+  - When a patch in the game's `Data` folder holds the later clients' water textures
+    (`XTextures\ocean\newoceanbump.blp`, `XTextures\foam\waterchop7bw.blp`), `Lumenveil-Setup.cmd` copies them into
+    the `Lumenveil` folder as `waterbump.blp` and `waterfoam.blp`. `WaterBump` (0-2): two wide layers of the normal
+    map (24 and 41 yard tiles) drift slowly with the wind over the waves for broad smooth undulations and bend the
+    reflections. `WaterFoam` (0-2): a narrow, soft band of foam where the water is shallow along the shores, fading
+    with depth and distance.
+
 ## 0.1.8 (2026-10-23)
 
 - The beam of a spotlight, a searchlight or a lighthouse no longer lights the ground behind it, opposite the camera:

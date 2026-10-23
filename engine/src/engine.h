@@ -56,6 +56,8 @@ struct FrameInputs
     int zoneId;
     uint32_t skyHorizonColor;
     uint32_t skyAboveHorizonColor;
+    uint32_t waterBandColors[4];
+    float waterBandAlphas[4];
     float dryLand;
     float greenLand;
     LightParamsSelection lightParams;

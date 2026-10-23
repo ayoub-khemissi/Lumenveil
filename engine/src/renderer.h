@@ -89,6 +89,7 @@ private:
                         const D3DVIEWPORT9& vp, const D3DSURFACE_DESC& depthDesc);
     void PrepareFullscreenPasses(IDirect3DDevice9* dev);
     bool EnsureWaterWaves(IDirect3DDevice9* dev);
+    void EnsureWaterTextures(IDirect3DDevice9* dev);
     bool DrawWaterWaves(IDirect3DDevice9* dev, const WaterWaveField& field);
     void BindWaterWaves(IDirect3DDevice9* dev);
     bool EnsureWaterMemory(IDirect3DDevice9* dev);
@@ -375,9 +376,16 @@ private:
     IDirect3DTexture9* m_waterSlopes = nullptr;
     IDirect3DTexture9* m_waterWaveTable = nullptr;
     IDirect3DTexture9* m_waterWaves[kWaterWaveLayers] = {};
+    IDirect3DTexture9* m_waterBump = nullptr;
+    IDirect3DTexture9* m_waterFoam = nullptr;
+    bool m_waterTexturesMade = false;
     IDirect3DTexture9* m_waterRainTable = nullptr;
     bool m_waterRainFailed = false;
     float m_waterRainShare = 0.0f;
+    float m_waterSeaShare = 0.0f;
+    double m_waterSeaSeconds = 0.0;
+    unsigned m_waterSmoothFrames = 0;
+    unsigned m_waterFloorFrames = 0;
     float m_waterRainStrength = 0.0f;
     WaterRipples m_waterRipples;
     IDirect3DTexture9* m_waterRippleTable = nullptr;

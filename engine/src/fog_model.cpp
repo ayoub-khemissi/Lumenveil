@@ -114,6 +114,7 @@ constexpr float kMoonGlitter = 0.5f;
 constexpr float kWeatherGlitterLoss = 0.85f;
 constexpr float kSkyZenithTint[3] = {0.62f, 0.78f, 1.0f};
 constexpr float kMinGlitterPeak = 1.0e-4f;
+constexpr float kOceanDeepestValue = 0.9f;
 constexpr float kSkyGlowOwnSunFrom = 0.1f;
 
 constexpr float kHoursPerDay = 24.0f;
@@ -808,6 +809,13 @@ void UnpackColor(uint32_t argb, float* rgb)
 
 namespace
 {
+void WaterBand(uint32_t colour, float alpha, float value, float* band)
+{
+    UnpackColor(colour, band);
+    Scale(band, value, band);
+    band[3] = std::isfinite(alpha) ? std::clamp(alpha, 0.0f, 1.0f) : 1.0f;
+}
+
 void BalanceLight(const FrameInputs& in, float strength, float* gains)
 {
     for (int i = 0; i < 3; ++i)
@@ -1095,7 +1103,7 @@ FogParams BuildFogParams(const FrameInputs& in, const Config& cfg, const Authore
 
 bool WaterWanted(const Config& cfg)
 {
-    return cfg.waterReflect > 0.0f || cfg.waterGlitter > 0.0f || cfg.waterClarity > 0.0f;
+    return cfg.waterReflect > 0.0f || cfg.waterGlitter > 0.0f || cfg.waterClarity > 0.0f || cfg.waterSmooth > 0.0f;
 }
 
 WaterParams BuildWaterParams(const FrameInputs& in, const Config& cfg)
@@ -1104,6 +1112,7 @@ WaterParams BuildWaterParams(const FrameInputs& in, const Config& cfg)
     const float weather = WeatherIntensity(in);
     w.reflect = cfg.waterReflect;
     w.clarity = cfg.waterClarity;
+    w.smooth = cfg.waterSmooth;
     w.waves = cfg.waterWaves;
     w.windSpeed = cfg.windSpeed + (cfg.stormWind - cfg.windSpeed) * weather;
     w.windDirection = cfg.windDirection;
@@ -1119,6 +1128,12 @@ WaterParams BuildWaterParams(const FrameInputs& in, const Config& cfg)
     UnpackColor(in.fogColor, w.skyHorizon);
     for (int i = 0; i < 3; ++i)
         w.skyZenith[i] = w.skyHorizon[i] * kSkyZenithTint[i];
+    WaterBand(in.waterBandColors[kRiverShallowColour], in.waterBandAlphas[kRiverShallowAlpha], 1.0f, w.riverShallow);
+    WaterBand(in.waterBandColors[kRiverDeepColour], in.waterBandAlphas[kRiverDeepAlpha], 1.0f, w.riverDeep);
+    WaterBand(in.waterBandColors[kOceanShallowColour], in.waterBandAlphas[kOceanShallowAlpha], 1.0f,
+              w.oceanShallow);
+    WaterBand(in.waterBandColors[kOceanDeepColour], in.waterBandAlphas[kOceanDeepAlpha], kOceanDeepestValue,
+              w.oceanDeep);
     return w;
 }
 

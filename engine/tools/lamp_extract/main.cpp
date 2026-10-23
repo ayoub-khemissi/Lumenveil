@@ -33,6 +33,7 @@ struct Options
     fs::path places;
     fs::path census;
     fs::path liquids;
+    fs::path waterTextures;
     std::string locale = "enUS";
     std::vector<uint32_t> maps;
     std::vector<std::string> models;
@@ -48,7 +49,8 @@ void PrintUsage()
                  "             [--background]\n"
                  "lamp_extract --data <client Data folder> --model <path.m2 | path.wmo> [--model ...]\n"
                  "lamp_extract --data <client Data folder> --liquids <liquiddata.bin> [--maps 0,1,530]\n"
-                 "             [--gameobjects <tsv>]\n";
+                 "             [--gameobjects <tsv>]\n"
+                 "lamp_extract --data <client Data folder> --water-textures <folder>\n";
 }
 
 bool ParseOptions(int argc, char** argv, Options& options)
@@ -84,6 +86,8 @@ bool ParseOptions(int argc, char** argv, Options& options)
             options.census = value;
         else if (arg == "--liquids")
             options.liquids = value;
+        else if (arg == "--water-textures")
+            options.waterTextures = value;
         else if (arg == "--model")
             options.models.push_back(value);
         else if (arg == "--maps")
@@ -96,7 +100,8 @@ bool ParseOptions(int argc, char** argv, Options& options)
         else
             return false;
     }
-    return !options.data.empty() && (!options.out.empty() || !options.models.empty() || !options.liquids.empty());
+    return !options.data.empty() && (!options.out.empty() || !options.models.empty() || !options.liquids.empty() ||
+                                     !options.waterTextures.empty());
 }
 
 std::vector<std::string> SplitTabs(const std::string& line)
@@ -210,6 +215,38 @@ void CheckFishingSpots(const LiquidMap& liquids, const std::vector<GameObjectSpa
                 all.spots ? 100.0 * all.water / all.spots : 0.0, all.water ? all.offSurface / all.water : 0.0);
 }
 
+int RunWaterTextures(const Options& options, const ArchiveSet& archives)
+{
+    const std::pair<const char*, const char*> textures[] = {
+        {"XTextures\\ocean\\newoceanbump.blp", "waterbump.blp"},
+        {"XTextures\\foam\\waterchop7bw.blp", "waterfoam.blp"},
+    };
+    int copied = 0;
+    for (const auto& [source, target] : textures)
+    {
+        const fs::path path = options.waterTextures / target;
+        std::optional<std::vector<uint8_t>> bytes = archives.Read(source);
+        if (!bytes)
+        {
+            std::error_code ignored;
+            fs::remove(path, ignored);
+            std::cout << source << ": not in the archives, no " << target << "\n";
+            continue;
+        }
+        std::ofstream file(path, std::ios::binary);
+        file.write(reinterpret_cast<const char*>(bytes->data()), static_cast<std::streamsize>(bytes->size()));
+        if (!file)
+        {
+            std::cerr << "could not write " << path.string() << "\n";
+            return 1;
+        }
+        std::cout << "wrote " << path.string() << " (" << bytes->size() << " bytes) from " << source << "\n";
+        ++copied;
+    }
+    std::cout << copied << " of 2 water textures copied\n";
+    return 0;
+}
+
 int RunLiquids(const Options& options, const ArchiveSet& archives)
 {
     ModelLightCatalogue models(archives);
@@ -297,6 +334,8 @@ int main(int argc, char** argv)
 
     if (!options.liquids.empty())
         return RunLiquids(options, archives);
+    if (!options.waterTextures.empty())
+        return RunWaterTextures(options, archives);
 
     ModelLightCatalogue models(archives);
     WmoCatalogue wmos(archives);

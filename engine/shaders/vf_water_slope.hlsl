@@ -4,12 +4,17 @@
 
 float4 cWaveLookup[7] : register(c16);
 float4 cWaveTurns : register(c23);
+float4 cBumpUv : register(c31);
+float4 cWaterExtras : register(c32);
+float4 cBumpBias : register(c34);
 
 sampler2D sWaves0 : register(s5);
 sampler2D sWaves1 : register(s6);
 sampler2D sWaves2 : register(s7);
+sampler2D sBump : register(s8);
 
 static const float kMinFootprintGrazing = 0.02;
+static const float kBumpMinNormalZ = 0.3;
 
 float UnresolvedRoughness()
 {
@@ -34,6 +39,12 @@ float2 Turn(float2 slope, float2 turn)
 float2 LayerVariance(float4 moments)
 {
     return max(moments.zw - moments.xy * moments.xy, 0);
+}
+
+float2 BumpSlope(float2 uv, float2 dx, float2 dy)
+{
+    float3 normal = tex2Dgrad(sBump, uv, dx, dy).rgb * 2 - 1;
+    return (normal.xy - cBumpBias.xy) / max(normal.z, kBumpMinNormalZ);
 }
 
 float2 FootprintStep(float3 rayWorld, float3 stepWorld, float surfaceZ)
@@ -62,6 +73,12 @@ float4 main(float2 vpos : VPOS) : COLOR0
     float2 slope = m0.xy + m1.xy + m4.xy + Turn(m2.xy + m5.xy, cWaveTurns.xy) + Turn(m3.xy + m6.xy, cWaveTurns.zw);
     float2 variance = LayerVariance(m0) + LayerVariance(m1) + LayerVariance(m2) + LayerVariance(m3) +
                       LayerVariance(m4) + LayerVariance(m5) + LayerVariance(m6);
+    [branch] if (cWaterExtras.z > 0)
+    {
+        float2 fine = BumpSlope(cBumpUv.xy + position * cWaterExtras.x, dx * cWaterExtras.x, dy * cWaterExtras.x);
+        float2 broad = BumpSlope(cBumpUv.zw + position * cWaterExtras.y, dx * cWaterExtras.y, dy * cWaterExtras.y);
+        slope += (fine + broad) * cWaterExtras.z;
+    }
     float roughness = UnresolvedRoughness() + variance.x + variance.y;
     float3 rings = WaterRings(s.relative, dx, dy);
     slope += rings.xy;

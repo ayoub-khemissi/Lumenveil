@@ -40,6 +40,11 @@ float FocalPixels()
     return cGlitterColour.w;
 }
 
+float Smoothness()
+{
+    return cWaveOrigin.x;
+}
+
 float Pow5(float x)
 {
     float x2 = x * x;
