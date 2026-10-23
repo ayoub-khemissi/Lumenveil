@@ -178,11 +178,31 @@ bool LiquidScanner::LoadTypes()
 void LiquidScanner::ScanAdt(const std::string& path, int tileX, int tileY, MapLiquids& out) const
 {
     std::optional<std::vector<uint8_t>> file = m_archives.Read(path);
-    if (!file)
-        return;
+    if (file)
+        ScanAdtBytes(*file, tileX, tileY, out);
+}
+
+void AddTileLiquids(MapLiquids& map, const MapLiquids& tile)
+{
+    map.chunks.insert(map.chunks.end(), tile.chunks.begin(), tile.chunks.end());
+    map.tiles += tile.tiles;
+    map.tilesWithLiquid += tile.tilesWithLiquid;
+    map.magmaOrSlimeChunks += tile.magmaOrSlimeChunks;
+    map.oldLiquidChunks += tile.oldLiquidChunks;
+    map.unknownTypes += tile.unknownTypes;
+}
+
+void SortLiquids(MapLiquids& map)
+{
+    std::sort(map.chunks.begin(), map.chunks.end(),
+              [](const liquidfile::Chunk& a, const liquidfile::Chunk& b) { return a.key < b.key; });
+}
+
+void LiquidScanner::ScanAdtBytes(const std::vector<uint8_t>& file, int tileX, int tileY, MapLiquids& out) const
+{
     ++out.tiles;
     ByteView water;
-    const std::vector<Chunk> chunks = ChunksOf(ByteView(*file));
+    const std::vector<Chunk> chunks = ChunksOf(ByteView(file));
     for (const Chunk& chunk : chunks)
         if (chunk.id == ChunkId("MH2O"))
             water = chunk.body;
@@ -271,8 +291,7 @@ MapLiquids LiquidScanner::ScanMap(const MapInfo& map) const
             ScanAdt(base + suffix, x, y, out);
         }
     }
-    std::sort(out.chunks.begin(), out.chunks.end(),
-              [](const liquidfile::Chunk& a, const liquidfile::Chunk& b) { return a.key < b.key; });
+    SortLiquids(out);
     return out;
 }
 

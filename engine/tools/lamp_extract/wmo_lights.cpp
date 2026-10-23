@@ -7,10 +7,12 @@
 #include <optional>
 #include <ostream>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "archive_set.h"
 #include "byte_view.h"
 #include "m2_lights.h"
+#include "parallel.h"
 
 namespace
 {
@@ -209,6 +211,24 @@ const WmoInfo& WmoCatalogue::Of(const std::string& name)
     if (found != m_wmos.end())
         return found->second;
     return m_wmos.emplace(path, Analyse(path)).first->second;
+}
+
+void WmoCatalogue::Prepare(const std::vector<std::string>& names, const std::vector<const ArchiveSet*>& readers)
+{
+    std::vector<std::string> paths;
+    std::unordered_set<std::string> wanted;
+    for (const std::string& name : names)
+    {
+        std::string path = UpperPath(name);
+        if (m_wmos.count(path) == 0 && wanted.insert(path).second)
+            paths.push_back(std::move(path));
+    }
+    std::vector<WmoInfo> found(paths.size());
+    ParallelFor(paths.size(), readers.size(), [&](size_t i, size_t worker) {
+        found[i] = WmoCatalogue(*readers[worker]).Analyse(paths[i]);
+    });
+    for (size_t i = 0; i < paths.size(); ++i)
+        m_wmos.emplace(paths[i], std::move(found[i]));
 }
 
 void WmoCatalogue::Describe(const std::string& name, ModelLightCatalogue& models, std::ostream& report)

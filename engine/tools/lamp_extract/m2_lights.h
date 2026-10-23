@@ -58,6 +58,7 @@ public:
     explicit ModelLightCatalogue(const ArchiveSet& archives) : m_archives(archives) {}
 
     const ModelLights& Of(const std::string& modelName);
+    void Prepare(const std::vector<std::string>& modelNames, const std::vector<const ArchiveSet*>& readers);
     const std::unordered_map<std::string, ModelLights>& Entries() const { return m_models; }
     void Describe(const std::string& modelName, std::ostream& report) const;
 

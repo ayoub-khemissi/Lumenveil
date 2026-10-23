@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2026-10-23)
+
+- `Lumenveil-Setup.cmd` is much faster and runs once instead of three times: one pass reads each terrain tile once
+  for the lamps and the water, on all the processor's cores, then places the lamps in the same order as before, so
+  `lampdata.bin` and `liquiddata.bin` come out the same. It runs at a below-normal priority instead of Windows'
+  background mode, which slowed its reading of the archives.
+- When the game's archives and the options are the same as at the last setup, it stops at once.
+
 ## 0.2.2 (2026-10-23)
 
 - `CoAVolFog.ini` keeps itself up to date: at the game's start, a setting the file lacks is added with its default

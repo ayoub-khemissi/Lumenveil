@@ -11,8 +11,10 @@
 #include "lamp_data.h"
 
 class ArchiveSet;
+class LiquidScanner;
 class ModelLightCatalogue;
 class WmoCatalogue;
+struct MapLiquids;
 struct WmoBox;
 
 struct PlacedInteriors
@@ -70,6 +72,33 @@ struct MapInfo
     std::string directory;
 };
 
+struct AdtDoodad
+{
+    uint32_t nameIndex = 0;
+    uint32_t uniqueId = 0;
+    Vec3 position;
+    Vec3 rotation;
+    uint16_t scale = 0;
+};
+
+struct AdtObject
+{
+    uint32_t nameIndex = 0;
+    uint32_t uniqueId = 0;
+    Vec3 position;
+    Vec3 rotation;
+    uint16_t doodadSet = 0;
+};
+
+struct AdtTile
+{
+    bool found = false;
+    std::vector<std::string> models;
+    std::vector<std::string> wmos;
+    std::vector<AdtDoodad> doodads;
+    std::vector<AdtObject> objects;
+};
+
 class WorldScanner
 {
 public:
@@ -80,14 +109,18 @@ public:
 
     bool LoadTables();
     const std::vector<MapInfo>& Maps() const { return m_maps; }
-    MapLights ScanMap(const MapInfo& map, const std::vector<GameObjectSpawn>& gameObjects);
+    MapLights ScanMap(const MapInfo& map, const std::vector<GameObjectSpawn>& gameObjects,
+                      const std::vector<const ArchiveSet*>& readers = {}, const LiquidScanner* liquids = nullptr,
+                      MapLiquids* liquidOut = nullptr);
     const std::unordered_map<std::string, uint32_t>& ModelPlacements() const { return m_modelPlacements; }
     const std::unordered_map<std::string, uint32_t>& WmoPlacements() const { return m_wmoPlacements; }
 
 private:
     void PlaceModel(const std::string& model, const Placement& placement, uint16_t extraFlags, MapLights& out);
     void PlaceWmo(const std::string& wmo, const Placement& placement, uint32_t doodadSet, MapLights& out);
-    void ScanAdt(const std::string& path, MapLights& out);
+    void PlaceTile(const AdtTile& tile, MapLights& out);
+    void Prepare(const std::string& globalWmo, uint32_t globalSet, const std::vector<AdtTile>& tiles,
+                 const std::vector<const ArchiveSet*>& readers);
     bool InsideAnInterior(Vec3 p) const;
     void Finish(MapLights& out);
 

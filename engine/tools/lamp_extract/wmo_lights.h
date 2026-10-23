@@ -93,6 +93,7 @@ public:
     explicit WmoCatalogue(const ArchiveSet& archives) : m_archives(archives) {}
 
     const WmoInfo& Of(const std::string& name);
+    void Prepare(const std::vector<std::string>& names, const std::vector<const ArchiveSet*>& readers);
     const std::unordered_map<std::string, WmoInfo>& Entries() const { return m_wmos; }
     void Describe(const std::string& name, ModelLightCatalogue& models, std::ostream& report);
 

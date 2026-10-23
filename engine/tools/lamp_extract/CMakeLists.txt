@@ -45,7 +45,8 @@ add_executable(lamp_extract
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/log.cpp)
 target_include_directories(lamp_extract PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 target_compile_definitions(lamp_extract PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
-target_compile_options(lamp_extract PRIVATE /W4 /utf-8)
+target_compile_options(lamp_extract PRIVATE /W4 /utf-8 $<$<CONFIG:Release>:/GL>)
+target_link_options(lamp_extract PRIVATE $<$<CONFIG:Release>:/LTCG>)
 target_link_libraries(lamp_extract PRIVATE lx_mpq)
 
 add_executable(relief_pack

@@ -4,11 +4,16 @@
 #include <cmath>
 #include <cstdio>
 #include <optional>
+#include <string>
+#include <unordered_set>
+#include <utility>
 
 #include "archive_set.h"
 #include "byte_view.h"
 #include "dbc_table.h"
+#include "liquid_scan.h"
 #include "m2_lights.h"
+#include "parallel.h"
 #include "wmo_lights.h"
 
 namespace
@@ -129,6 +134,31 @@ void ForNeighbours(const std::unordered_map<int64_t, std::vector<size_t>>& grid,
             }
 }
 
+AdtTile ParseAdtTile(const std::vector<uint8_t>& file)
+{
+    AdtTile tile;
+    tile.found = true;
+    std::vector<Chunk> chunks;
+    for (const Chunk& chunk : ChunksOf(ByteView(file)))
+    {
+        if (chunk.id == ChunkId("MCNK"))
+            break;
+        chunks.push_back(chunk);
+    }
+    tile.models = NameTable(FindChunk(chunks, ChunkId("MMDX")), FindChunk(chunks, ChunkId("MMID")));
+    tile.wmos = NameTable(FindChunk(chunks, ChunkId("MWMO")), FindChunk(chunks, ChunkId("MWID")));
+    ByteView doodads = FindChunk(chunks, ChunkId("MDDF"));
+    for (size_t at = 0; at + kMddfStride <= doodads.Size(); at += kMddfStride)
+        tile.doodads.push_back({doodads.Get<uint32_t>(at), doodads.Get<uint32_t>(at + kMddfUniqueId),
+                                doodads.Get<Vec3>(at + kMddfPosition), doodads.Get<Vec3>(at + kMddfRotation),
+                                doodads.Get<uint16_t>(at + kMddfScale)});
+    ByteView objects = FindChunk(chunks, ChunkId("MODF"));
+    for (size_t at = 0; at + kModfStride <= objects.Size(); at += kModfStride)
+        tile.objects.push_back({objects.Get<uint32_t>(at), objects.Get<uint32_t>(at + kModfUniqueId),
+                                objects.Get<Vec3>(at + kModfPosition), objects.Get<Vec3>(at + kModfRotation),
+                                objects.Get<uint16_t>(at + kModfDoodadSet)});
+    return tile;
+}
 }
 
 bool WorldScanner::LoadTables()
@@ -257,54 +287,82 @@ void WorldScanner::PlaceWmo(const std::string& wmo, const Placement& placement, 
     }
 }
 
-void WorldScanner::ScanAdt(const std::string& path, MapLights& out)
+void WorldScanner::PlaceTile(const AdtTile& tile, MapLights& out)
 {
-    std::optional<std::vector<uint8_t>> file = m_archives.Read(path);
-    if (!file)
+    if (!tile.found)
     {
         ++out.missingTiles;
         return;
     }
     ++out.tiles;
-    std::vector<Chunk> chunks;
-    for (const Chunk& chunk : ChunksOf(ByteView(*file)))
+    for (const AdtDoodad& doodad : tile.doodads)
     {
-        if (chunk.id == ChunkId("MCNK"))
-            break;
-        chunks.push_back(chunk);
-    }
-    std::vector<std::string> models = NameTable(FindChunk(chunks, ChunkId("MMDX")), FindChunk(chunks, ChunkId("MMID")));
-    std::vector<std::string> wmos = NameTable(FindChunk(chunks, ChunkId("MWMO")), FindChunk(chunks, ChunkId("MWID")));
-
-    ByteView doodads = FindChunk(chunks, ChunkId("MDDF"));
-    for (size_t at = 0; at + kMddfStride <= doodads.Size(); at += kMddfStride)
-    {
-        uint32_t nameIndex = doodads.Get<uint32_t>(at);
-        uint32_t uniqueId = doodads.Get<uint32_t>(at + kMddfUniqueId);
-        if (nameIndex >= models.size() || !m_seenDoodads.insert(uniqueId).second)
+        if (doodad.nameIndex >= tile.models.size() || !m_seenDoodads.insert(doodad.uniqueId).second)
             continue;
         ++out.doodadPlacements;
-        float scale = doodads.Get<uint16_t>(at + kMddfScale) / 1024.0f;
-        Placement placement = AdtPlacement(doodads.Get<Vec3>(at + kMddfPosition), doodads.Get<Vec3>(at + kMddfRotation),
-                                           scale > 0.0f ? scale : 1.0f, false);
-        PlaceModel(models[nameIndex], placement, 0, out);
+        float scale = doodad.scale / 1024.0f;
+        Placement placement = AdtPlacement(doodad.position, doodad.rotation, scale > 0.0f ? scale : 1.0f, false);
+        PlaceModel(tile.models[doodad.nameIndex], placement, 0, out);
     }
-
-    ByteView objects = FindChunk(chunks, ChunkId("MODF"));
-    for (size_t at = 0; at + kModfStride <= objects.Size(); at += kModfStride)
+    for (const AdtObject& object : tile.objects)
     {
-        uint32_t nameIndex = objects.Get<uint32_t>(at);
-        uint32_t uniqueId = objects.Get<uint32_t>(at + kModfUniqueId);
-        if (nameIndex >= wmos.size() || !m_seenWmos.insert(uniqueId).second)
+        if (object.nameIndex >= tile.wmos.size() || !m_seenWmos.insert(object.uniqueId).second)
             continue;
         ++out.wmoPlacements;
-        Placement placement =
-            AdtPlacement(objects.Get<Vec3>(at + kModfPosition), objects.Get<Vec3>(at + kModfRotation), 1.0f, false);
-        PlaceWmo(wmos[nameIndex], placement, objects.Get<uint16_t>(at + kModfDoodadSet), out);
+        Placement placement = AdtPlacement(object.position, object.rotation, 1.0f, false);
+        PlaceWmo(tile.wmos[object.nameIndex], placement, object.doodadSet, out);
     }
 }
 
-MapLights WorldScanner::ScanMap(const MapInfo& map, const std::vector<GameObjectSpawn>& gameObjects)
+void WorldScanner::Prepare(const std::string& globalWmo, uint32_t globalSet, const std::vector<AdtTile>& tiles,
+                           const std::vector<const ArchiveSet*>& readers)
+{
+    std::vector<std::pair<std::string, uint32_t>> wmoPlacements;
+    std::unordered_set<std::string> seenWmoSets;
+    auto addWmo = [&](const std::string& name, uint32_t set) {
+        if (seenWmoSets.insert(name + "#" + std::to_string(set)).second)
+            wmoPlacements.emplace_back(name, set);
+    };
+    if (!globalWmo.empty())
+        addWmo(globalWmo, globalSet);
+    std::vector<std::string> models;
+    for (const AdtTile& tile : tiles)
+    {
+        for (const AdtDoodad& doodad : tile.doodads)
+            if (doodad.nameIndex < tile.models.size())
+                models.push_back(tile.models[doodad.nameIndex]);
+        for (const AdtObject& object : tile.objects)
+            if (object.nameIndex < tile.wmos.size())
+                addWmo(tile.wmos[object.nameIndex], object.doodadSet);
+    }
+    std::vector<std::string> wmoNames;
+    for (const auto& placement : wmoPlacements)
+        wmoNames.push_back(placement.first);
+    m_wmos.Prepare(wmoNames, readers);
+    for (const auto& [name, doodadSet] : wmoPlacements)
+    {
+        const WmoInfo& info = m_wmos.Of(name);
+        if (!info.found)
+            continue;
+        std::vector<uint32_t> activeSets{0};
+        if (doodadSet != 0 && doodadSet < info.sets.size())
+            activeSets.push_back(doodadSet);
+        for (uint32_t set : activeSets)
+        {
+            if (set >= info.sets.size())
+                continue;
+            const WmoDoodadSet& range = info.sets[set];
+            for (uint32_t i = range.start; i < range.start + range.count && i < info.doodads.size(); ++i)
+                if (info.doodads[i].referencedIndoors || info.doodads[i].referencedOutdoors)
+                    models.push_back(info.doodads[i].model);
+        }
+    }
+    m_models.Prepare(models, readers);
+}
+
+MapLights WorldScanner::ScanMap(const MapInfo& map, const std::vector<GameObjectSpawn>& gameObjects,
+                                const std::vector<const ArchiveSet*>& readers, const LiquidScanner* liquids,
+                                MapLiquids* liquidOut)
 {
     MapLights out;
     out.mapId = map.id;
@@ -313,37 +371,60 @@ MapLights WorldScanner::ScanMap(const MapInfo& map, const std::vector<GameObject
     m_seenWmos.clear();
     m_interiors.clear();
 
+    const std::vector<const ArchiveSet*> workers =
+        readers.empty() ? std::vector<const ArchiveSet*>{&m_archives} : readers;
+    const bool scanLiquids = liquids != nullptr && liquidOut != nullptr;
     std::string base = "World\\Maps\\" + map.directory + "\\" + map.directory;
     std::optional<std::vector<uint8_t>> wdtFile = m_archives.Read(base + ".wdt");
     if (wdtFile)
     {
         std::vector<Chunk> chunks = ChunksOf(ByteView(*wdtFile));
         uint32_t flags = FindChunk(chunks, ChunkId("MPHD")).Get<uint32_t>(0);
+        std::string globalWmo;
+        ByteView globalPlacement;
         if (flags & kWdtGlobalWmo)
         {
-            std::string wmo = FindChunk(chunks, ChunkId("MWMO")).CString(0);
-            ByteView placement = FindChunk(chunks, ChunkId("MODF"));
-            if (!wmo.empty() && placement.Size() >= kModfStride)
-            {
-                ++out.wmoPlacements;
-                PlaceWmo(wmo,
-                         AdtPlacement(placement.Get<Vec3>(kModfPosition), placement.Get<Vec3>(kModfRotation), 1.0f,
-                                      true),
-                         placement.Get<uint16_t>(kModfDoodadSet), out);
-            }
+            globalWmo = FindChunk(chunks, ChunkId("MWMO")).CString(0);
+            globalPlacement = FindChunk(chunks, ChunkId("MODF"));
         }
+        const bool global = !globalWmo.empty() && globalPlacement.Size() >= kModfStride;
         ByteView main = FindChunk(chunks, ChunkId("MAIN"));
+        std::vector<std::pair<int, int>> spots;
         for (int y = 0; y < kTilesPerSide; ++y)
-        {
             for (int x = 0; x < kTilesPerSide; ++x)
-            {
-                size_t entry = static_cast<size_t>(y * kTilesPerSide + x) * kMainEntrySize;
-                if (!(main.Get<uint32_t>(entry) & kMainHasAdt))
-                    continue;
-                char suffix[32];
-                std::snprintf(suffix, sizeof(suffix), "_%d_%d.adt", x, y);
-                ScanAdt(base + suffix, out);
-            }
+                if (main.Get<uint32_t>(static_cast<size_t>(y * kTilesPerSide + x) * kMainEntrySize) & kMainHasAdt)
+                    spots.emplace_back(x, y);
+        std::vector<AdtTile> tiles(spots.size());
+        std::vector<MapLiquids> tileLiquids(scanLiquids ? spots.size() : 0);
+        ParallelFor(spots.size(), workers.size(), [&](size_t i, size_t worker) {
+            char suffix[32];
+            std::snprintf(suffix, sizeof(suffix), "_%d_%d.adt", spots[i].first, spots[i].second);
+            std::optional<std::vector<uint8_t>> file = workers[worker]->Read(base + suffix);
+            if (!file)
+                return;
+            tiles[i] = ParseAdtTile(*file);
+            if (scanLiquids)
+                liquids->ScanAdtBytes(*file, spots[i].first, spots[i].second, tileLiquids[i]);
+        });
+        Prepare(global ? globalWmo : std::string(), global ? globalPlacement.Get<uint16_t>(kModfDoodadSet) : 0u,
+                tiles, workers);
+        if (global)
+        {
+            ++out.wmoPlacements;
+            PlaceWmo(globalWmo,
+                     AdtPlacement(globalPlacement.Get<Vec3>(kModfPosition), globalPlacement.Get<Vec3>(kModfRotation),
+                                  1.0f, true),
+                     globalPlacement.Get<uint16_t>(kModfDoodadSet), out);
+        }
+        for (const AdtTile& tile : tiles)
+            PlaceTile(tile, out);
+        if (scanLiquids)
+        {
+            liquidOut->mapId = map.id;
+            liquidOut->directory = map.directory;
+            for (const MapLiquids& tile : tileLiquids)
+                AddTileLiquids(*liquidOut, tile);
+            SortLiquids(*liquidOut);
         }
     }
 

@@ -31,6 +31,7 @@ public:
     bool LoadTypes();
     size_t TypeCount() const { return m_soundBanks.size(); }
     MapLiquids ScanMap(const MapInfo& map) const;
+    void ScanAdtBytes(const std::vector<uint8_t>& file, int tileX, int tileY, MapLiquids& out) const;
 
 private:
     void ScanAdt(const std::string& path, int tileX, int tileY, MapLiquids& out) const;
@@ -39,4 +40,6 @@ private:
     std::unordered_map<uint32_t, uint32_t> m_soundBanks;
 };
 
+void AddTileLiquids(MapLiquids& map, const MapLiquids& tile);
+void SortLiquids(MapLiquids& map);
 bool WriteLiquidFile(const std::filesystem::path& path, const std::vector<MapLiquids>& maps);

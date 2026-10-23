@@ -7,8 +7,10 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "archive_set.h"
 #include "census.h"
@@ -25,6 +27,8 @@ namespace fs = std::filesystem;
 namespace
 {
 
+constexpr size_t kMaxThreads = 16;
+
 struct Options
 {
     fs::path data;
@@ -34,8 +38,11 @@ struct Options
     fs::path census;
     fs::path liquids;
     fs::path waterTextures;
+    fs::path stamp;
     std::string locale = "enUS";
     std::vector<uint32_t> maps;
+    std::vector<uint32_t> liquidMaps;
+    size_t threads = 0;
     std::vector<std::string> models;
     bool background = false;
     bool stock = false;
@@ -50,7 +57,10 @@ void PrintUsage()
                  "lamp_extract --data <client Data folder> --model <path.m2 | path.wmo> [--model ...]\n"
                  "lamp_extract --data <client Data folder> --liquids <liquiddata.bin> [--maps 0,1,530]\n"
                  "             [--gameobjects <tsv>]\n"
-                 "lamp_extract --data <client Data folder> --water-textures <folder>\n";
+                 "lamp_extract --data <client Data folder> --water-textures <folder>\n"
+                 "lamp_extract --data <client Data folder> --out <lampdata.bin> [--liquids <liquiddata.bin>\n"
+                 "             [--liquid-maps 0,1,530,571]] [--water-textures <folder>] [--stamp <file>]\n"
+                 "             [--threads N] [--locale enUS] [--background]\n";
 }
 
 bool ParseOptions(int argc, char** argv, Options& options)
@@ -88,6 +98,17 @@ bool ParseOptions(int argc, char** argv, Options& options)
             options.liquids = value;
         else if (arg == "--water-textures")
             options.waterTextures = value;
+        else if (arg == "--stamp")
+            options.stamp = value;
+        else if (arg == "--threads")
+            options.threads = static_cast<size_t>(std::strtoul(value, nullptr, 10));
+        else if (arg == "--liquid-maps")
+        {
+            std::stringstream list(value);
+            std::string item;
+            while (std::getline(list, item, ','))
+                options.liquidMaps.push_back(static_cast<uint32_t>(std::strtoul(item.c_str(), nullptr, 10)));
+        }
         else if (arg == "--model")
             options.models.push_back(value);
         else if (arg == "--maps")
@@ -168,6 +189,79 @@ std::vector<CensusPlace> ReadPlaces(const fs::path& path)
 bool Wanted(const Options& options, uint32_t mapId)
 {
     return options.maps.empty() || std::find(options.maps.begin(), options.maps.end(), mapId) != options.maps.end();
+}
+
+bool LiquidsWanted(const Options& options, uint32_t mapId)
+{
+    return !options.liquids.empty() &&
+           (options.liquidMaps.empty() ||
+            std::find(options.liquidMaps.begin(), options.liquidMaps.end(), mapId) != options.liquidMaps.end());
+}
+
+std::string Signature(const ArchiveSet& archives, const Options& options)
+{
+    std::ostringstream text;
+    text << "lamp_extract setup 1\n" << options.out.string() << "\n" << options.liquids.string() << "\n"
+         << options.waterTextures.string() << "\n" << options.locale << "\n" << (options.stock ? 1 : 0) << "\n";
+    for (uint32_t id : options.maps)
+        text << id << ",";
+    text << "\n";
+    for (uint32_t id : options.liquidMaps)
+        text << id << ",";
+    text << "\n";
+    for (const std::string& name : archives.OpenedNames())
+    {
+        std::error_code error;
+        const auto size = fs::file_size(name, error);
+        const auto written = fs::last_write_time(name, error).time_since_epoch().count();
+        text << name << "|" << size << "|" << written << "\n";
+    }
+    return text.str();
+}
+
+std::string ReadWholeText(const fs::path& path)
+{
+    std::ifstream file(path, std::ios::binary);
+    std::ostringstream text;
+    text << file.rdbuf();
+    return text.str();
+}
+
+bool OutputsPresent(const Options& options)
+{
+    std::error_code error;
+    return fs::exists(options.out, error) && (options.liquids.empty() || fs::exists(options.liquids, error));
+}
+
+int WriteLiquids(const Options& options, const std::vector<MapLiquids>& maps)
+{
+    if (!WriteLiquidFile(options.liquids, maps))
+    {
+        std::cerr << "could not write " << options.liquids.string() << "\n";
+        return 1;
+    }
+    LiquidMap reread;
+    if (!reread.Load(options.liquids.string()))
+    {
+        std::cerr << "the fog DLL's reader rejects " << options.liquids.string() << "\n";
+        return 1;
+    }
+    std::cout << "wrote " << options.liquids.string() << " (" << fs::file_size(options.liquids)
+              << " bytes); the fog DLL's reader accepts it: " << reread.MapCount() << " maps, " << reread.ChunkCount()
+              << " chunks\n";
+    return 0;
+}
+
+void PrintLiquids(const MapInfo& map, const MapLiquids& found)
+{
+    size_t lakes = 0;
+    for (const liquidfile::Chunk& c : found.chunks)
+        lakes += c.kind == liquidfile::kLake ? 1 : 0;
+    std::printf("map %4u %-28s tiles %4u (%u with water) chunks: %6zu lake %6zu sea (%u in the old format), "
+                "%u magma or slime, %u unknown\n",
+                map.id, map.directory.c_str(), found.tiles, found.tilesWithLiquid, lakes,
+                found.chunks.size() - lakes, found.oldLiquidChunks, found.magmaOrSlimeChunks, found.unknownTypes);
+    std::fflush(stdout);
 }
 
 bool FishingSpot(const std::string& name)
@@ -306,7 +400,7 @@ int main(int argc, char** argv)
         return 2;
     }
     if (options.background)
-        SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
+        SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 
     auto started = std::chrono::steady_clock::now();
     ArchiveSet archives;
@@ -332,10 +426,38 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    if (!options.liquids.empty())
+    if (!options.liquids.empty() && options.out.empty())
         return RunLiquids(options, archives);
-    if (!options.waterTextures.empty())
+    if (!options.waterTextures.empty() && options.out.empty())
         return RunWaterTextures(options, archives);
+
+    const std::string signature = Signature(archives, options);
+    if (!options.stamp.empty() && OutputsPresent(options) && ReadWholeText(options.stamp) == signature)
+    {
+        std::cout << "the game's archives and the options are as at the last setup: nothing to do\n";
+        return 0;
+    }
+    const size_t wantedThreads =
+        options.threads > 0 ? options.threads : static_cast<size_t>(std::thread::hardware_concurrency());
+    const size_t threads = std::clamp<size_t>(wantedThreads, 1, kMaxThreads);
+    std::vector<std::unique_ptr<ArchiveSet>> extraReaders;
+    std::vector<const ArchiveSet*> readers{&archives};
+    while (readers.size() < threads)
+    {
+        auto reader = std::make_unique<ArchiveSet>();
+        if (!reader->Open(options.data, options.locale, !options.stock))
+            break;
+        readers.push_back(reader.get());
+        extraReaders.push_back(std::move(reader));
+    }
+    std::cout << readers.size() << " threads\n";
+    LiquidScanner liquids(archives);
+    if (!options.liquids.empty() && !liquids.LoadTypes())
+    {
+        std::cerr << "LiquidType.dbc could not be read\n";
+        return 1;
+    }
+    std::vector<MapLiquids> liquidMaps;
 
     ModelLightCatalogue models(archives);
     WmoCatalogue wmos(archives);
@@ -358,8 +480,16 @@ int main(int argc, char** argv)
         if (!Wanted(options, map.id))
             continue;
         auto mapStarted = std::chrono::steady_clock::now();
-        MapLights lights = scanner.ScanMap(map, gameObjects);
+        const bool withLiquids = LiquidsWanted(options, map.id);
+        MapLiquids found;
+        MapLights lights = scanner.ScanMap(map, gameObjects, readers, withLiquids ? &liquids : nullptr,
+                                           withLiquids ? &found : nullptr);
         double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - mapStarted).count();
+        if (withLiquids && found.tiles > 0)
+        {
+            PrintLiquids(map, found);
+            liquidMaps.push_back(std::move(found));
+        }
         if (lights.lamps.empty() && lights.windows.empty() && lights.tiles == 0 && lights.wmoPlacements == 0)
             continue;
         std::printf("map %4u %-28s tiles %4u lights %6zu windows %6zu indoor game object lights %4u  %.1f s\n",
@@ -391,5 +521,16 @@ int main(int argc, char** argv)
     }
     std::cout << "the fog DLL's reader accepts it: " << reread.LampTotal() << " lamps, " << reread.WindowTotal()
               << " windows\n";
+    if (!options.liquids.empty() && WriteLiquids(options, liquidMaps) != 0)
+        return 1;
+    if (!options.waterTextures.empty() && RunWaterTextures(options, archives) != 0)
+        return 1;
+    if (!options.stamp.empty())
+    {
+        std::ofstream stampFile(options.stamp, std::ios::binary | std::ios::trunc);
+        stampFile << signature;
+    }
+    std::cout << "setup done in "
+              << std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count() << " s\n";
     return 0;
 }

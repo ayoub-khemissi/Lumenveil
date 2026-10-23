@@ -5,9 +5,11 @@
 #include <cstdio>
 #include <optional>
 #include <ostream>
+#include <unordered_set>
 
 #include "archive_set.h"
 #include "byte_view.h"
+#include "parallel.h"
 
 namespace
 {
@@ -574,6 +576,27 @@ const ModelLights& ModelLightCatalogue::Of(const std::string& modelName)
     if (found != m_models.end())
         return found->second;
     return m_models.emplace(path, Analyse(path)).first->second;
+}
+
+void ModelLightCatalogue::Prepare(const std::vector<std::string>& modelNames,
+                                  const std::vector<const ArchiveSet*>& readers)
+{
+    std::vector<std::string> paths;
+    std::unordered_set<std::string> wanted;
+    for (const std::string& name : modelNames)
+    {
+        if (name.empty())
+            continue;
+        std::string path = M2PathOf(name);
+        if (m_models.count(path) == 0 && wanted.insert(path).second)
+            paths.push_back(std::move(path));
+    }
+    std::vector<ModelLights> found(paths.size());
+    ParallelFor(paths.size(), readers.size(), [&](size_t i, size_t worker) {
+        found[i] = ModelLightCatalogue(*readers[worker]).Analyse(paths[i]);
+    });
+    for (size_t i = 0; i < paths.size(); ++i)
+        m_models.emplace(paths[i], std::move(found[i]));
 }
 
 ModelLights ModelLightCatalogue::Analyse(const std::string& path, std::ostream* report) const
