@@ -3,6 +3,7 @@
 #include "vf_surface_normal.hlsli"
 #include "vf_clouds.hlsli"
 #include "vf_material_tag.hlsli"
+#include "vf_ground_map.hlsli"
 
 float4 cWet : register(c9);
 float4 cLightInView : register(c10);
@@ -89,8 +90,6 @@ static const float kNoiseTexels = 256;
 
 static const float kUnknownGround = 5e4;
 static const float kCoverClearance = 3;
-static const float kGroundCoverTop = 1;
-static const float kSolidAboveGround = 2.5;
 static const float kOutwardLookupCells = 1;
 static const float kShelterDepth = 3;
 static const float kShelterRamp = 2;
@@ -203,40 +202,6 @@ float EnvironmentSpecular(float f0, float roughness, float NoV)
     float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
     float2 scaleAndBias = float2(-1.04, 1.04) * a004 + r.zw;
     return f0 * scaleAndBias.x + scaleAndBias.y;
-}
-
-struct MapGround
-{
-    float onGround;
-    float3 normal;
-};
-
-MapGround GroundOnTheMap(float3 fromCamera)
-{
-    MapGround g;
-    g.onGround = 0;
-    g.normal = float3(0, 0, 1);
-    [branch] if (cTerrainMap.z > 0)
-    {
-        float2 texel = (cTerrainMap.xy + fromCamera.xy * cTerrainMap.z) * cTerrainReach.x - 0.5;
-        float2 firstCell = floor(texel);
-        float2 fraction = texel - firstCell;
-        static const float2 kCorners[4] = { float2(0, 0), float2(1, 0), float2(0, 1), float2(1, 1) };
-        float4 ground;
-        [unroll] for (int k = 0; k < 4; k++)
-            ground[k] = tex2Dlod(sTerrain, float4((firstCell + kCorners[k] + 0.5) / cTerrainReach.x, 0, 0)).g;
-        bool known = max(max(abs(ground.x), abs(ground.y)), max(abs(ground.z), abs(ground.w))) < kUnknownGround;
-        float groundHere =
-            lerp(lerp(ground.x, ground.y, fraction.x), lerp(ground.z, ground.w, fraction.x), fraction.y);
-        float heightTerm = (CameraPositionWorld().z + fromCamera.z) * cTerrainMap.w;
-        float aboveGround = (heightTerm + groundHere - 1) / cTerrainMap.w - kCoverClearance;
-        float2 rise = float2(lerp(ground.y - ground.x, ground.w - ground.z, fraction.y),
-                             lerp(ground.z - ground.x, ground.w - ground.y, fraction.x)) *
-                      (-cTerrainMap.z * cTerrainReach.x / cTerrainMap.w);
-        g.onGround = known ? 1 - smoothstep(kGroundCoverTop, kSolidAboveGround, aboveGround) : 0;
-        g.normal = known ? normalize(float3(-rise, 1)) : g.normal;
-    }
-    return g;
 }
 
 float4 SiteUnderTheSky(float3 fromCamera, float3 worldNormal)
@@ -510,8 +475,8 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
     float darkens = m.wetting.x;
     float pores = m.wetting.y;
 
-    MapGround mapGround = GroundOnTheMap(fromCamera);
-    float onMap = thin ? 0 : mapGround.onGround;
+    MapGround mapGround = GroundOnTheMap(sTerrain, cTerrainMap, cTerrainReach, fromCamera);
+    float onMap = thin ? 0 : OnTheMap(mapGround, worldNormal);
     float3 smoothNormal = normalize(lerp(ViewToWorldDirection(LitNormal(normal)), mapGround.normal, onMap));
     float4 site = SiteUnderTheSky(fromCamera, smoothNormal);
     float up = saturate(lerp(worldNormal.z, mapGround.normal.z, onMap));

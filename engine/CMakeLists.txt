@@ -35,7 +35,7 @@ function(vf_shader name source profile)
                 ${SHADER_DIR}/vf_lamp_shadow.hlsli ${SHADER_DIR}/vf_memory.hlsli
                 ${SHADER_DIR}/vf_water_surface.hlsli ${SHADER_DIR}/vf_water_memory.hlsli
                 ${SHADER_DIR}/vf_water_rings.hlsli ${SHADER_DIR}/vf_clouds.hlsli
-                ${SHADER_DIR}/vf_material_tag.hlsli
+                ${SHADER_DIR}/vf_material_tag.hlsli ${SHADER_DIR}/vf_ground_map.hlsli
         COMMENT "fxc ${name}"
         VERBATIM)
     set(SHADER_HEADERS ${SHADER_HEADERS} ${out} PARENT_SCOPE)

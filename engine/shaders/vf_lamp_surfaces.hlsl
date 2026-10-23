@@ -2,16 +2,20 @@
 #include "vf_lamp_shadow.hlsli"
 #include "vf_lamp_tiles.hlsli"
 #include "vf_surface_normal.hlsli"
+#include "vf_ground_map.hlsli"
 
 float4 cLampSurfaces : register(c9);
 float4 cSunInView : register(c10);
 float4 cCarrierBase : register(c11);
 float4 cCarrierUp : register(c12);
 float4 cLampTiles : register(c13);
+float4 cTerrainMap : register(c14);
+float4 cTerrainReach : register(c15);
 
 sampler2D sLampTable : register(s1);
 sampler2D sOccluderDepth : register(s2);
 sampler2D sLampTiles : register(s3);
+sampler2D sTerrain : register(s4);
 
 static const int kShadowSteps = 16;
 static const float kNearYards = 0.5;
@@ -32,9 +36,9 @@ float SlotCount()
     return cLampSurfaces.x;
 }
 
-float SunFacingCode(float4 normal)
+float SunFacingCode(float4 normal, float3 litNormal)
 {
-    return normal.w > 0 ? kThinFacingCode : saturate(dot(normal.xyz, cSunInView.xyz)) * kFacingCodeScale;
+    return normal.w > 0 ? kThinFacingCode : saturate(dot(litNormal, cSunInView.xyz)) * kFacingCodeScale;
 }
 
 float4 main(float2 targetPixel : VPOS) : COLOR0
@@ -46,7 +50,10 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
     float3 surface = ViewRayAtUnitDepth(pixel) * LinearDepth(depth);
     float4 normal = SurfaceNormal(pixel, surface);
     float jitter = InterleavedGradientNoise(pixel);
-    float3 litNormal = LitNormal(normal);
+    MapGround mapGround = GroundOnTheMap(sTerrain, cTerrainMap, cTerrainReach, ViewToWorldDirection(surface));
+    float onMap = normal.w > 0 ? 0 : OnTheMap(mapGround, ViewToWorldDirection(normal.xyz));
+    float3 litNormal =
+        normalize(lerp(LitNormal(normal), mul((float3x3)cViewToWorld, mapGround.normal), onMap));
 
     float2 tile = LampTileOf(cLampTiles, pixel);
     float listed = LampTileListed(sLampTiles, cLampTiles, tile);
@@ -91,5 +98,5 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
         }
         entry += 1;
     }
-    return float4(pointLight, SunFacingCode(normal));
+    return float4(pointLight, SunFacingCode(normal, litNormal));
 }

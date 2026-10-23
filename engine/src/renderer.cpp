@@ -134,7 +134,8 @@ constexpr DWORD kLampSurfaceDepthStage = 0;
 constexpr DWORD kLampSurfaceTableStage = 1;
 constexpr DWORD kLampSurfaceOccluderStage = 2;
 constexpr DWORD kLampSurfaceTileStage = 3;
-constexpr UINT kLampSurfaceConstants = 5;
+constexpr DWORD kLampSurfaceTerrainStage = 4;
+constexpr UINT kLampSurfaceConstants = 7;
 constexpr UINT kWetRegister = 9;
 constexpr UINT kWetConstants = 20;
 constexpr DWORD kWetDepthStage = 0;
@@ -2080,7 +2081,8 @@ void Renderer::BlurLampLight(IDirect3DDevice9* dev, IDirect3DTexture9* source, I
 
 
 void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture, IDirect3DTexture9* fogTexture,
-                           const FrameInputs& in, const Config& cfg, const FogParams& fog, bool effectScene)
+                           const FrameInputs& in, const Config& cfg, const FogParams& fog,
+                           const TerrainShadowConstants& terrain, bool effectScene)
 {
     const bool halosBefore = m_lampsDrawn;
     m_lampsDrawn = false;
@@ -2158,12 +2160,15 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
             {carrier.base[0], carrier.base[1], carrier.base[2], carrier.radius},
             {carrier.up[0], carrier.up[1], carrier.up[2], carrier.height},
             {tileTexels[0], tileTexels[1], 0.0f, tilePixels},
+            {terrain.uvAtCamera[0], terrain.uvAtCamera[1], terrain.uvPerYard, terrain.sharpness},
+            {static_cast<float>(TerrainShadowMap::kSide), 0.0f, 0.0f, 0.0f},
         };
         dev->SetPixelShaderConstantF(kLampPassRegister, &surfaces[0].x, kLampSurfaceConstants);
         BindTexture(dev, kLampSurfaceDepthStage, depthTexture, false);
         BindTexture(dev, kLampSurfaceTableStage, lamps ? m_lampTable : nullptr, false);
         BindTexture(dev, kLampSurfaceOccluderStage, occluderFresh ? m_occluderDepth : depthTexture, false);
         BindTexture(dev, kLampSurfaceTileStage, tiled ? m_lampTileTexture : nullptr, false);
+        BindTexture(dev, kLampSurfaceTerrainStage, terrain.uvPerYard > 0.0f ? m_terrainTexture : nullptr, false);
         DrawFullscreen(dev);
         m_profile.End(dev, ProfileSection::LampSurfaces);
         if (lamps && m_lampSurfacesBlur && g_lampLightBlur)
@@ -3071,7 +3076,7 @@ bool Renderer::RenderPasses(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextu
     const bool effectScene =
         fog.effectLight > 0.0f && m_effectBaselineFresh && !m_effectsFailed && CopyWorldViewport(dev, target, vp);
     m_profile.AddCpuTicks(ProfileSection::WorldCopy, FrameProfile::Now() - copyStart);
-    RenderLamps(dev, depthTexture, m_history[write], in, cfg, fog, effectScene);
+    RenderLamps(dev, depthTexture, m_history[write], in, cfg, fog, terrain, effectScene);
     m_profile.End(dev, ProfileSection::Lamps);
     m_profile.Begin(dev, ProfileSection::Composite);
 

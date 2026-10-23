@@ -149,7 +149,8 @@ private:
     bool UploadLampTable(IDirect3DDevice9* dev, const LampTable& table);
     bool UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, const FrameInputs& in);
     void RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture, IDirect3DTexture9* fogTexture,
-                     const FrameInputs& in, const Config& cfg, const FogParams& fog, bool effectScene);
+                     const FrameInputs& in, const Config& cfg, const FogParams& fog,
+                     const TerrainShadowConstants& terrain, bool effectScene);
     bool EnsureEffectShaders(IDirect3DDevice9* dev);
     bool EnsureEffectBaseline(IDirect3DDevice9* dev, IDirect3DSurface9* target, UINT w, UINT h);
     bool EnsureEffectTargets(IDirect3DDevice9* dev, UINT w, UINT h);

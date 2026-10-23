@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2 (2026-10-23)
+
+- The light of your weapon or armour (`EffectLight`), the lantern and the lamps no longer draw the terrain's
+  triangles on rounded ground: on the terrain they light it by the terrain's height map, smooth from one spot to
+  the next, instead of by each triangle's tilt, so a lit patch no longer ends on a straight triangle edge. The night
+  darkness and the low sun's warm light judge the ground's facing the same way.
+- The ground's smooth slope (here and for the sheen and wet ground of 0.4.0) only replaces a facing already close
+  to it (within 40 to 60 degrees): characters, creatures and objects standing on the ground keep their own light
+  and reflections.
+
 ## 0.4.0 (2026-10-23)
 
 - The sun's sheen and wet ground no longer draw the terrain's triangles, seen from the front or looking straight
