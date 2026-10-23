@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 (2026-10-23)
+
+- The beam of a spotlight, a searchlight or a lighthouse no longer lights the ground behind it, opposite the camera:
+  the spell light now leaves out what glows within 25 yards of those lamps, as it already did within 3 yards of every
+  lamp's flame.
+
 ## 0.1.7 (2026-10-23)
 
 - The lamps no longer make the game wait for the graphics card each frame (about 2 ms a frame at night, 76 to 91

@@ -33,6 +33,18 @@ std::vector<T> Records(const unsigned char* bytes, uint32_t offset, uint32_t cou
     return out;
 }
 
+bool BeamLampName(const char* name)
+{
+    static const char* const kBeamModels[] = {"SPOTLIGHT", "SEARCHLIGHT", "LIGHTHOUSE"};
+    std::string upper(name);
+    for (char& c : upper)
+        c = static_cast<char>(c >= 'a' && c <= 'z' ? c - 'a' + 'A' : c);
+    for (const char* key : kBeamModels)
+        if (upper.find(key) != std::string::npos)
+            return true;
+    return false;
+}
+
 bool ValidLamp(const lampfile::Lamp& lamp, uint32_t nameTableSize)
 {
     return Finite(lamp.position, 3) && Finite(lamp.color, 3) && std::isfinite(lamp.intensity) &&
@@ -143,8 +155,20 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
     }
     m_maps = std::move(maps);
     m_names.assign(bytes + header.nameTableOffset, bytes + header.nameTableOffset + header.nameTableSize);
+    size_t beams = 0;
+    for (LampMap& map : m_maps)
+    {
+        map.beams.assign(map.lamps.size(), 0);
+        for (size_t i = 0; i < map.lamps.size(); ++i)
+            if (BeamLampName(Name(map.lamps[i].name)))
+            {
+                map.beams[i] = 1;
+                ++beams;
+            }
+    }
     VF_LOG_INFO("lamp data: %u maps, %zu lamps, %zu windows from %s", header.mapCount, LampTotal(), WindowTotal(),
                 source);
+    VF_LOG_INFO("lamp data: %zu spotlights, searchlights and lighthouses, whose beams give no spell light", beams);
     return true;
 }
 

@@ -130,12 +130,14 @@ void SuppressLampFlames(const EffectMeasurement& m, const LampMap& lamps, std::v
 {
     const EffectFrame& f = m.frame;
     const float search = kEffectFarthestYards + kMaxEffectReach;
-    ForEachLampNear(lamps, f.camPos[0], f.camPos[1], search, [&](uint32_t, const lampfile::Lamp& lamp) {
+    ForEachLampNear(lamps, f.camPos[0], f.camPos[1], search, [&](uint32_t index, const lampfile::Lamp& lamp) {
         ProjectedLamp p;
         if (!ProjectLamp(f, lamp, p) || p.depth > search)
             return;
-        const float glowU = std::max(p.radiusU, kEffectLampGlowYards * f.glProjection[0] * 0.5f / p.depth);
-        const float glowV = std::max(p.radiusV, kEffectLampGlowYards * f.glProjection[5] * 0.5f / p.depth);
+        const bool beam = index < lamps.beams.size() && lamps.beams[index] != 0;
+        const float glowYards = beam ? kEffectBeamGlowYards : kEffectLampGlowYards;
+        const float glowU = std::max(p.radiusU, glowYards * f.glProjection[0] * 0.5f / p.depth);
+        const float glowV = std::max(p.radiusV, glowYards * f.glProjection[5] * 0.5f / p.depth);
         const float cellsPerU = f.viewportWidth / kEffectCellPixels;
         const float cellsPerV = f.viewportHeight / kEffectCellPixels;
         const int x0 = std::max(0, static_cast<int>(std::floor((p.u - glowU) * cellsPerU)));
@@ -143,7 +145,7 @@ void SuppressLampFlames(const EffectMeasurement& m, const LampMap& lamps, std::v
         const int y0 = std::max(0, static_cast<int>(std::floor((p.v - glowV) * cellsPerV)));
         const int y1 = std::min(m.rows - 1, static_cast<int>(std::floor((p.v + glowV) * cellsPerV)));
         const float nearest = p.depth - std::max(kEffectLampDepthYards, kEffectLampDepthShare * p.depth);
-        const float behind = p.depth + kEffectLampGlowBehindYards;
+        const float behind = beam ? p.depth - kEffectBeamGlowYards : p.depth + kEffectLampGlowBehindYards;
         for (int y = y0; y <= y1; ++y)
             for (int x = x0; x <= x1; ++x)
             {

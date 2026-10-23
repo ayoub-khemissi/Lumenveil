@@ -76,6 +76,7 @@ constexpr uint32_t kEffectMuzzleFlashClass = 3;
 constexpr float kEffectSpriteDepthShare = 0.85f;
 constexpr float kEffectLampGlowYards = 3.0f;
 constexpr float kEffectLampGlowBehindYards = 1.5f;
+constexpr float kEffectBeamGlowYards = 25.0f;
 constexpr float kEffectRingPerBoundingRadius = 3.0f;
 constexpr float kMinEffectRingYards = 1.5f;
 constexpr float kMaxEffectRingYards = 10.0f;

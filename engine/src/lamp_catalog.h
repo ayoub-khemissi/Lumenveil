@@ -14,6 +14,7 @@ struct LampMap
     std::vector<lampfile::Cell> cells;
     std::vector<lampfile::Lamp> lamps;
     std::vector<lampfile::Window> windows;
+    std::vector<uint8_t> beams;
 };
 
 class LampCatalog
