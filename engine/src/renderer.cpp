@@ -674,6 +674,8 @@ void Renderer::ReleaseDefaultPool()
     SafeRelease(m_glow[0]);
     SafeRelease(m_glow[1]);
     SafeRelease(m_lampTable);
+    for (IDirect3DTexture9*& staging : m_lampTableStaging)
+        SafeRelease(staging);
     SafeRelease(m_lampVisibility[0]);
     SafeRelease(m_lampVisibility[1]);
     SafeRelease(m_lampHalos);
@@ -684,6 +686,8 @@ void Renderer::ReleaseDefaultPool()
     m_wetFailed = false;
     m_wetDrawn = false;
     SafeRelease(m_lampTileTexture);
+    for (IDirect3DTexture9*& staging : m_lampTileStaging)
+        SafeRelease(staging);
     m_lampTileTextureW = m_lampTileTextureH = 0;
     SafeRelease(m_edgeOccluders);
     SafeRelease(m_occluderDepth);
@@ -1615,9 +1619,15 @@ bool Renderer::EnsureLampTargets(IDirect3DDevice9* dev, UINT lowW, UINT lowH)
         return false;
     SafeRelease(m_lampHalos);
     m_lampW = m_lampH = 0;
+    bool staged = true;
+    for (IDirect3DTexture9*& staging : m_lampTableStaging)
+        staged = staged && (staging || SUCCEEDED(dev->CreateTexture(kLampSlots, kLampTableRows, 1, 0,
+                                                                    D3DFMT_A32B32G32R32F, D3DPOOL_SYSTEMMEM,
+                                                                    &staging, nullptr)));
     const bool tables =
-        (m_lampTable || SUCCEEDED(dev->CreateTexture(kLampSlots, kLampTableRows, 1, D3DUSAGE_DYNAMIC,
-                                                     D3DFMT_A32B32G32R32F, D3DPOOL_DEFAULT, &m_lampTable, nullptr))) &&
+        staged &&
+        (m_lampTable || SUCCEEDED(dev->CreateTexture(kLampSlots, kLampTableRows, 1, 0, D3DFMT_A32B32G32R32F,
+                                                     D3DPOOL_DEFAULT, &m_lampTable, nullptr))) &&
         (m_lampVisibility[0] || CreateTarget(dev, kLampSlots, 1, D3DFMT_A8R8G8B8, &m_lampVisibility[0])) &&
         (m_lampVisibility[1] || CreateTarget(dev, kLampSlots, 1, D3DFMT_A8R8G8B8, &m_lampVisibility[1]));
     D3DFORMAT haloFormat = D3DFMT_A16B16G16R16F;
@@ -1626,6 +1636,8 @@ bool Renderer::EnsureLampTargets(IDirect3DDevice9* dev, UINT lowW, UINT lowH)
     if (!halos)
     {
         SafeRelease(m_lampTable);
+        for (IDirect3DTexture9*& staging : m_lampTableStaging)
+            SafeRelease(staging);
         SafeRelease(m_lampVisibility[0]);
         SafeRelease(m_lampVisibility[1]);
         SafeRelease(m_lampHalos);
@@ -1869,16 +1881,21 @@ void Renderer::RenderEdgeOccluders(IDirect3DDevice9* dev, IDirect3DTexture9* dep
     DrawFullscreen(dev);
 }
 
-bool Renderer::UploadLampTable(const LampTable& table)
+bool Renderer::UploadLampTable(IDirect3DDevice9* dev, const LampTable& table)
 {
+    const long long start = FrameProfile::Now();
+    m_lampUpload = (m_lampUpload + 1) % kLampUploadRing;
+    IDirect3DTexture9* staging = m_lampTableStaging[m_lampUpload];
     D3DLOCKED_RECT locked = {};
-    if (FAILED(m_lampTable->LockRect(0, &locked, nullptr, D3DLOCK_DISCARD)))
+    if (!staging || !m_lampTable || FAILED(staging->LockRect(0, &locked, nullptr, 0)))
         return false;
     for (int row = 0; row < kLampTableRows; ++row)
         std::memcpy(static_cast<unsigned char*>(locked.pBits) + row * locked.Pitch, table.texels[row],
                     sizeof(table.texels[row]));
-    m_lampTable->UnlockRect(0);
-    return true;
+    staging->UnlockRect(0);
+    const bool sent = SUCCEEDED(dev->UpdateTexture(staging, m_lampTable));
+    m_profile.AddCpuTicks(ProfileSection::LampTable, FrameProfile::Now() - start);
+    return sent;
 }
 
 bool Renderer::UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, const FrameInputs& in)
@@ -1895,17 +1912,27 @@ bool Renderer::UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, co
     const UINT h = m_lampTiles.TextureHeight();
     if (!m_lampTileTexture || m_lampTileTextureW != w || m_lampTileTextureH != h)
     {
-        SafeRelease(m_lampTileTexture);
+        const auto release = [&]() {
+            SafeRelease(m_lampTileTexture);
+            for (IDirect3DTexture9*& staging : m_lampTileStaging)
+                SafeRelease(staging);
+        };
+        const auto make = [&](D3DFORMAT format) {
+            bool made = SUCCEEDED(dev->CreateTexture(w, h, 1, 0, format, D3DPOOL_DEFAULT, &m_lampTileTexture, nullptr));
+            for (IDirect3DTexture9*& staging : m_lampTileStaging)
+                made = made &&
+                       SUCCEEDED(dev->CreateTexture(w, h, 1, 0, format, D3DPOOL_SYSTEMMEM, &staging, nullptr));
+            if (!made)
+                release();
+            return made;
+        };
+        release();
         m_lampTileBytes = 1;
-        if (FAILED(dev->CreateTexture(w, h, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &m_lampTileTexture,
-                                      nullptr)))
+        if (!make(D3DFMT_L8))
         {
-            m_lampTileTexture = nullptr;
             m_lampTileBytes = 4;
-            if (FAILED(dev->CreateTexture(w, h, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT,
-                                          &m_lampTileTexture, nullptr)))
+            if (!make(D3DFMT_A8R8G8B8))
             {
-                m_lampTileTexture = nullptr;
                 m_lampTilesFailed = true;
                 VF_LOG_ERROR("lamp tile list creation failed (%ux%u); every pixel tests every lamp", w, h);
                 return false;
@@ -1913,16 +1940,23 @@ bool Renderer::UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, co
         }
         m_lampTileTextureW = w;
         m_lampTileTextureH = h;
-        VF_LOG_INFO("lamp tiles: %dx%d tiles of %d px, lists in a %ux%u %s texture", m_lampTiles.TilesX(),
-                    m_lampTiles.TilesY(), kLampTilePixels, w, h, m_lampTileBytes == 1 ? "L8" : "A8R8G8B8");
+        VF_LOG_INFO("lamp tiles: %dx%d tiles of %d px, lists in a %ux%u %s texture, written through %d in system "
+                    "memory",
+                    m_lampTiles.TilesX(), m_lampTiles.TilesY(), kLampTilePixels, w, h,
+                    m_lampTileBytes == 1 ? "L8" : "A8R8G8B8", kLampUploadRing);
     }
+    IDirect3DTexture9* staging = m_lampTileStaging[m_lampUpload];
     D3DLOCKED_RECT locked = {};
-    if (FAILED(m_lampTileTexture->LockRect(0, &locked, nullptr, D3DLOCK_DISCARD)))
+    if (!staging || FAILED(staging->LockRect(0, &locked, nullptr, 0)))
         return false;
     const long long lockEnd = FrameProfile::Now();
     m_lampTiles.Write(static_cast<unsigned char*>(locked.pBits), locked.Pitch, m_lampTileBytes);
-    m_lampTileTexture->UnlockRect(0);
+    staging->UnlockRect(0);
+    const bool sent = SUCCEEDED(dev->UpdateTexture(staging, m_lampTileTexture));
     const long long writeEnd = FrameProfile::Now();
+    m_profile.AddCpuTicks(ProfileSection::LampTileBuild, buildEnd - buildStart);
+    m_profile.AddCpuTicks(ProfileSection::LampTileLock, lockEnd - buildEnd);
+    m_profile.AddCpuTicks(ProfileSection::LampTileWrite, writeEnd - lockEnd);
     LARGE_INTEGER frequency = {};
     QueryPerformanceFrequency(&frequency);
     const double msPerTick = 1000.0 / static_cast<double>(frequency.QuadPart);
@@ -1932,8 +1966,8 @@ bool Renderer::UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, co
                  static_cast<double>(buildEnd - buildStart) * msPerTick,
                  static_cast<double>(lockEnd - buildEnd) * msPerTick,
                  static_cast<double>(writeEnd - lockEnd) * msPerTick);
-    m_lampTilesUsed = true;
-    return true;
+    m_lampTilesUsed = sent;
+    return sent;
 }
 
 void Renderer::BlurLampLight(IDirect3DDevice9* dev, IDirect3DTexture9* source, IDirect3DTexture9* destination,
@@ -1965,6 +1999,7 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
     const std::vector<EffectLamp>* effects =
         UpdateEffects(dev, depthTexture, in, fog, effectScene && baselineFresh && occluderFresh);
     m_profile.End(dev, ProfileSection::Effects);
+    const long long unitsStart = FrameProfile::Now();
     const LanternLamp& lantern = m_lantern.Update(in, cfg, fog.lanternLight);
     const std::vector<EffectLamp>& corpses = m_corpses.Update(in, fog.corpseLight);
     m_carried.clear();
@@ -1977,6 +2012,8 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
     m_carried.insert(m_carried.end(), corpses.begin(), corpses.end());
     std::stable_sort(m_carried.begin(), m_carried.end(),
                      [](const EffectLamp& a, const EffectLamp& b) { return a.intensity > b.intensity; });
+    const long long selectStart = FrameProfile::Now();
+    m_profile.AddCpuTicks(ProfileSection::LampUnits, selectStart - unitsStart);
     const LampTable& table =
         m_lamps.Update(GlobalLampCatalog(), in, cfg, fog.lampHaze, fog.lampLight, fog.windowLight, fog.lanternGlow,
                        &lantern, fog.lanternLight, m_carried.empty() ? nullptr : &m_carried, 1.0f, fog.farLightCore);
@@ -1988,11 +2025,17 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
             effectSlots.set(static_cast<size_t>(slot));
     }
     m_waterLampRecords = RecordWaterLamps(table, in, fog.lampHaze, fog.lampLight, effectSlots);
+    const long long uploadStart = FrameProfile::Now();
+    m_profile.AddCpuTicks(ProfileSection::LampSelect, uploadStart - selectStart);
     const bool sunFacing = std::max({fog.lowSunLift[0], fog.lowSunLift[1], fog.lowSunLift[2]}) > 0.0f;
-    const bool lamps = table.slots > 0 && EnsureLampTargets(dev, m_lowW, m_lowH) && UploadLampTable(table);
+    const bool lamps = table.slots > 0 && EnsureLampTargets(dev, m_lowW, m_lowH) && UploadLampTable(dev, table);
     if (!lamps && !sunFacing)
+    {
+        m_profile.AddCpuTicks(ProfileSection::LampUpload, FrameProfile::Now() - uploadStart);
         return;
+    }
     const bool tiled = lamps && UploadLampTiles(dev, table, in);
+    m_profile.AddCpuTicks(ProfileSection::LampUpload, FrameProfile::Now() - uploadStart);
     const float tileTexels[2] = {tiled ? 1.0f / static_cast<float>(m_lampTileTextureW) : 0.0f,
                                  tiled ? 1.0f / static_cast<float>(m_lampTileTextureH) : 0.0f};
     const float tilePixels = tiled ? static_cast<float>(kLampTilePixels) : 0.0f;
@@ -2926,8 +2969,10 @@ bool Renderer::RenderPasses(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextu
 
     m_profile.End(dev, ProfileSection::March);
     m_profile.Begin(dev, ProfileSection::Lamps);
+    const long long copyStart = FrameProfile::Now();
     const bool effectScene =
         fog.effectLight > 0.0f && m_effectBaselineFresh && !m_effectsFailed && CopyWorldViewport(dev, target, vp);
+    m_profile.AddCpuTicks(ProfileSection::WorldCopy, FrameProfile::Now() - copyStart);
     RenderLamps(dev, depthTexture, m_history[write], in, cfg, fog, effectScene);
     m_profile.End(dev, ProfileSection::Lamps);
     m_profile.Begin(dev, ProfileSection::Composite);

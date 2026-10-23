@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.7 (2026-10-23)
+
+- The lamps no longer make the game wait for the graphics card each frame (about 2 ms a frame at night, 76 to 91
+  frames a second in a test): the lamp list and the lamp tiles are written in system memory and copied by the card
+  itself, instead of locking textures in its memory.
+- With `PerfLog=1`, the summary also splits the lamps' time on the main thread: the copy of the world for spell
+  light, the units, the lamp selection, and the upload (the table, the tile building, the tile lock and the tile
+  writing).
+
 ## 0.1.4 (2026-10-23)
 
 - Lamp light on the ground no longer shows the terrain's triangles: before it takes a lamp's light, each triangle

@@ -31,6 +31,7 @@ void SetShaftMemoryFade(bool enabled);
 void SetBankWisps(bool enabled);
 
 constexpr DWORD kWaterStencilBit = 0x80;
+constexpr int kLampUploadRing = 4;
 
 class Renderer
 {
@@ -144,7 +145,7 @@ private:
     void BeginMemoryPoints(IDirect3DDevice9* dev, IDirect3DVertexShader9* vs, IDirect3DVertexBuffer9* grid,
                            IDirect3DTexture9* vertexTexture);
     void EndMemoryPoints(IDirect3DDevice9* dev);
-    bool UploadLampTable(const LampTable& table);
+    bool UploadLampTable(IDirect3DDevice9* dev, const LampTable& table);
     bool UploadLampTiles(IDirect3DDevice9* dev, const LampTable& table, const FrameInputs& in);
     void RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTexture, IDirect3DTexture9* fogTexture,
                      const FrameInputs& in, const Config& cfg, const FogParams& fog, bool effectScene);
@@ -240,6 +241,8 @@ private:
     LampSelection m_lamps;
     BeltLantern m_lantern;
     IDirect3DTexture9* m_lampTable = nullptr;
+    IDirect3DTexture9* m_lampTableStaging[kLampUploadRing] = {};
+    int m_lampUpload = 0;
     IDirect3DTexture9* m_lampVisibility[2] = {};
     IDirect3DTexture9* m_lampHalos = nullptr;
     UINT m_lampW = 0;
@@ -251,6 +254,7 @@ private:
     IDirect3DTexture9* m_lampSurfacesBlur = nullptr;
     LampTiles m_lampTiles;
     IDirect3DTexture9* m_lampTileTexture = nullptr;
+    IDirect3DTexture9* m_lampTileStaging[kLampUploadRing] = {};
     UINT m_lampTileTextureW = 0;
     UINT m_lampTileTextureH = 0;
     int m_lampTileBytes = 0;

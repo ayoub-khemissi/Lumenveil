@@ -300,6 +300,19 @@ void FrameProfile::LogWindow()
                 gpu(ProfileSection::WetSurfaces), gpu(ProfileSection::Composite), gpu(ProfileSection::Water),
                 gpu(ProfileSection::LiquidCopies), gpu(ProfileSection::OpaqueHook), gpu(ProfileSection::BeforePresent),
                 w.gpuFrames ? w.gpuFrameSeconds * 1000.0 / w.gpuFrames : 0.0);
+    const double lampParts = cpu(ProfileSection::Effects) + cpu(ProfileSection::LampUnits) +
+                             cpu(ProfileSection::LampSelect) + cpu(ProfileSection::LampUpload) +
+                             cpu(ProfileSection::LampSurfaces) + cpu(ProfileSection::LampBlur) +
+                             cpu(ProfileSection::LampHalos);
+    VF_LOG_INFO("perf: lamps on the main thread, ms a frame: world copy %.2f, effects %.2f, units %.2f, "
+                "selection %.2f, upload %.2f (table %.2f, tile build %.2f, tile lock %.2f, tile write %.2f), light "
+                "%.2f, blur %.2f, halos %.2f, the rest %.2f",
+                cpu(ProfileSection::WorldCopy), cpu(ProfileSection::Effects), cpu(ProfileSection::LampUnits),
+                cpu(ProfileSection::LampSelect), cpu(ProfileSection::LampUpload), cpu(ProfileSection::LampTable),
+                cpu(ProfileSection::LampTileBuild), cpu(ProfileSection::LampTileLock),
+                cpu(ProfileSection::LampTileWrite), cpu(ProfileSection::LampSurfaces),
+                cpu(ProfileSection::LampBlur), cpu(ProfileSection::LampHalos),
+                cpu(ProfileSection::Lamps) - cpu(ProfileSection::WorldCopy) - lampParts);
 }
 
 void FrameProfile::Report(ProfileReport& out, bool reset)

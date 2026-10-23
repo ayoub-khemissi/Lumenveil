@@ -23,6 +23,14 @@ enum class ProfileSection : int
     BeforePresent,
     Present,
     ClientDraws,
+    WorldCopy,
+    LampUnits,
+    LampSelect,
+    LampUpload,
+    LampTable,
+    LampTileBuild,
+    LampTileLock,
+    LampTileWrite,
     Count
 };
 
@@ -49,7 +57,8 @@ inline const char* ProfileSectionName(ProfileSection s)
         "render",        "shaft memory",  "march",       "lamps",          "effects",
         "lamp light",    "lamp blur",     "lamp halos",  "wet surfaces",   "composite",
         "water",         "liquid copies", "opaque hook", "before Present", "Present",
-        "client draw calls",
+        "client draw calls", "world copy",  "lamp units",  "lamp selection", "lamp upload",
+        "lamp table",        "lamp tile build", "lamp tile lock", "lamp tile write",
     };
     const int i = static_cast<int>(s);
     return i >= 0 && i < kProfileSections ? names[i] : "?";
