@@ -24,9 +24,6 @@ static const float kWindowWrap = 0.1;
 static const float kThinFacingCode = 1;
 static const float kFacingCodeScale = 0.5;
 static const float3 kLuminanceWeights = float3(0.2126, 0.7152, 0.0722);
-static const float kGroundUpFrom = 0.35;
-static const float kGroundUpTo = 0.55;
-static const float kGroundStraightening = 0.9;
 static const float kReceiverClearanceYards = 0.2;
 static const float kReceiverClearancePerYard = 0.15;
 
@@ -38,14 +35,6 @@ float SlotCount()
 float SunFacingCode(float4 normal)
 {
     return normal.w > 0 ? kThinFacingCode : saturate(dot(normal.xyz, cSunInView.xyz)) * kFacingCodeScale;
-}
-
-float3 LitNormal(float4 normal)
-{
-    float3 up = normalize(mul((float3x3)cViewToWorld, float3(0, 0, 1)));
-    float ground = smoothstep(kGroundUpFrom, kGroundUpTo, dot(normal.xyz, up));
-    float straightening = normal.w > 0 ? 0 : kGroundStraightening * ground;
-    return normalize(lerp(normal.xyz, up, straightening));
 }
 
 float4 main(float2 targetPixel : VPOS) : COLOR0

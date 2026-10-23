@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 (2026-10-23)
+
+- The sun's sheen and wet ground no longer draw the terrain's triangles, seen from the front or looking straight
+  down, by day or by night:
+  - the dry sheen on bright, smooth ground (snow, ice, pale stone) lies level, as on flat ground, and fades out on
+    steep slopes by the terrain's height map, which is smooth from one spot to the next, instead of by each
+    triangle's tilt;
+  - on wet ground the film's highlight uses the ground's normal straightened toward the vertical, and on steep
+    slopes its reflections and highlights fade out (walls keep them); how wet the ground gets, its puddles and its
+    shelter follow the height map's slope too. Objects and walls standing above the ground keep their own facing.
+
 ## 0.3.1 (2026-10-23)
 
 - `Lumenveil-Setup.cmd` is much faster and runs once instead of three times: one pass reads each terrain tile once

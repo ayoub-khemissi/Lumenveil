@@ -61,6 +61,10 @@ static const float kLampLobeWidening = 1.0 / 3.0;
 
 static const float kSheenFadeFrom = 150;
 static const float kSheenFadeTo = 400;
+static const float kSheenSteepFrom = 0.45;
+static const float kSheenSteepTo = 0.55;
+static const float kWallUpTo = 0.05;
+static const float kSteepGroundFrom = 0.15;
 static const float kReflectFadeFrom = 300;
 static const float kReflectFadeTo = 600;
 static const float kWallWetShare = 0.5;
@@ -85,6 +89,8 @@ static const float kNoiseTexels = 256;
 
 static const float kUnknownGround = 5e4;
 static const float kCoverClearance = 3;
+static const float kGroundCoverTop = 1;
+static const float kSolidAboveGround = 2.5;
 static const float kOutwardLookupCells = 1;
 static const float kShelterDepth = 3;
 static const float kShelterRamp = 2;
@@ -197,6 +203,40 @@ float EnvironmentSpecular(float f0, float roughness, float NoV)
     float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
     float2 scaleAndBias = float2(-1.04, 1.04) * a004 + r.zw;
     return f0 * scaleAndBias.x + scaleAndBias.y;
+}
+
+struct MapGround
+{
+    float onGround;
+    float3 normal;
+};
+
+MapGround GroundOnTheMap(float3 fromCamera)
+{
+    MapGround g;
+    g.onGround = 0;
+    g.normal = float3(0, 0, 1);
+    [branch] if (cTerrainMap.z > 0)
+    {
+        float2 texel = (cTerrainMap.xy + fromCamera.xy * cTerrainMap.z) * cTerrainReach.x - 0.5;
+        float2 firstCell = floor(texel);
+        float2 fraction = texel - firstCell;
+        static const float2 kCorners[4] = { float2(0, 0), float2(1, 0), float2(0, 1), float2(1, 1) };
+        float4 ground;
+        [unroll] for (int k = 0; k < 4; k++)
+            ground[k] = tex2Dlod(sTerrain, float4((firstCell + kCorners[k] + 0.5) / cTerrainReach.x, 0, 0)).g;
+        bool known = max(max(abs(ground.x), abs(ground.y)), max(abs(ground.z), abs(ground.w))) < kUnknownGround;
+        float groundHere =
+            lerp(lerp(ground.x, ground.y, fraction.x), lerp(ground.z, ground.w, fraction.x), fraction.y);
+        float heightTerm = (CameraPositionWorld().z + fromCamera.z) * cTerrainMap.w;
+        float aboveGround = (heightTerm + groundHere - 1) / cTerrainMap.w - kCoverClearance;
+        float2 rise = float2(lerp(ground.y - ground.x, ground.w - ground.z, fraction.y),
+                             lerp(ground.z - ground.x, ground.w - ground.y, fraction.x)) *
+                      (-cTerrainMap.z * cTerrainReach.x / cTerrainMap.w);
+        g.onGround = known ? 1 - smoothstep(kGroundCoverTop, kSolidAboveGround, aboveGround) : 0;
+        g.normal = known ? normalize(float3(-rise, 1)) : g.normal;
+    }
+    return g;
 }
 
 float4 SiteUnderTheSky(float3 fromCamera, float3 worldNormal)
@@ -470,14 +510,23 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
     float darkens = m.wetting.x;
     float pores = m.wetting.y;
 
-    float4 site = SiteUnderTheSky(fromCamera, worldNormal);
-    float up = saturate(worldNormal.z);
-    float wet = Wetness() * site.y * lerp(kWallWetShare, 1, up) * (thin ? kThinWetShare : 1);
-    float film = m.wetting.z * saturate((wet - pores) / max(1 - pores, 1e-3));
+    MapGround mapGround = GroundOnTheMap(fromCamera);
+    float onMap = thin ? 0 : mapGround.onGround;
+    float3 smoothNormal = normalize(lerp(ViewToWorldDirection(LitNormal(normal)), mapGround.normal, onMap));
+    float4 site = SiteUnderTheSky(fromCamera, smoothNormal);
+    float up = saturate(lerp(worldNormal.z, mapGround.normal.z, onMap));
+    float upright = lerp(dot(normal.xyz, UpInView()), mapGround.normal.z, onMap);
+    float steepGround = thin ? 0
+                             : smoothstep(kWallUpTo, kSteepGroundFrom, upright) *
+                                   (1 - smoothstep(kSheenSteepFrom, kSheenSteepTo, upright));
+    float level = thin ? 1 : smoothstep(kSheenSteepFrom, kSheenSteepTo, upright);
+    float wet = Wetness() * site.y * lerp(kWallWetShare, 1, thin ? up : level) * (thin ? kThinWetShare : 1);
+    float film = m.wetting.z * saturate((wet - pores) / max(1 - pores, 1e-3)) * (1 - steepGround);
     float puddle = thin ? 0 : PuddleAt(fromCamera, up, site, yards, m.wetting.w);
     float glossy = m.wetting.z * saturate(1 - pores / kSheenPores) *
                    smoothstep(kGlossFromAlbedo, kGlossFullAlbedo, luminance);
-    float dryShine = DrySheen() * glossy * (1 - smoothstep(kSheenFadeFrom, kSheenFadeTo, yards));
+    float sheenLevel = thin ? 1 : lerp(1, smoothstep(kSheenSteepFrom, kSheenSteepTo, mapGround.normal.z), onMap);
+    float dryShine = DrySheen() * glossy * sheenLevel * (1 - smoothstep(kSheenFadeFrom, kSheenFadeTo, yards));
     float filmShine = max(max(dryShine, film), puddle);
     float glintShine = m.glint * (wet * kDropCover +
                                   DrySheen() * saturate(1 - darkens / kSparkleBelowDarkening) * kSparkleCover);
@@ -491,7 +540,8 @@ float4 main(float2 targetPixel : VPOS) : COLOR0
                                : lerp(lerp(kDryRoughness, kWetRoughness, saturate(film)), kPuddleRoughness, puddle);
     float alpha = roughness * roughness;
     float f0 = glinting ? kWaterF0 : lerp(kSurfaceF0, kWaterF0, puddle);
-    float3 specNormal = normalize(lerp(normal.xyz, UpInView(), puddle));
+    float dryShare = saturate(1 - max(film, puddle) / max(dryShine, kMinShine));
+    float3 specNormal = normalize(lerp(LitNormal(normal), UpInView(), max(dryShare, puddle)));
     float shine = filmShine;
     [branch] if (glinting)
     {
