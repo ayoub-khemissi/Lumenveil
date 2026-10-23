@@ -121,6 +121,7 @@ void Attach(HMODULE module)
 {
     std::string dir = ModuleDirectory(module);
     LogOpen((dir + "CoAVolFog.log").c_str());
+    ConfigStore::Upgrade(dir + "CoAVolFog.ini");
     GlobalConfig().Load(dir + "CoAVolFog.ini");
     DrawLogSetDirectory(dir);
     SpotsSetDirectory(dir);

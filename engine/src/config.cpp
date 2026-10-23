@@ -14,6 +14,8 @@
 namespace
 {
 constexpr const char* kSection = "CoAVolFog";
+constexpr const char* kSettingsVersionKey = "SettingsVersion";
+constexpr int kSettingsVersion = 1;
 constexpr unsigned kMaxFunctionKey = 24;
 
 struct IntSetting
@@ -335,6 +337,13 @@ bool IsDiagnosticSetting(const char* key)
 bool WriteSetting(const std::string& path, const char* key, const std::string& text)
 {
     return WritePrivateProfileStringA(kSection, key, text.c_str(), path.c_str()) != FALSE;
+}
+
+bool HasSetting(const std::string& path, const char* key)
+{
+    char value[4] = {};
+    GetPrivateProfileStringA(kSection, key, "\x01", value, sizeof(value), path.c_str());
+    return value[0] != '\x01';
 }
 
 void ClampLiveSettings(Config& c)
@@ -961,6 +970,42 @@ void ConfigStore::Load(const std::string& path)
     m_path = path;
     m_stamp = FileStamp(path);
     Read();
+}
+
+void ConfigStore::Upgrade(const std::string& path)
+{
+    static const std::pair<const char*, const char*> kWaterLook[] = {
+        {"WaterReflect", "0.7"}, {"WaterGlitter", "0.4"}, {"WaterClarity", "0.25"}, {"WaterSmooth", "1"},
+        {"WaterBump", "1"},      {"WaterFoam", "0"},      {"WaterWaves", "0.2"},
+    };
+    const int version = ReadInt(path, kSettingsVersionKey, 0, 0, kSettingsVersion);
+    bool written = true;
+    if (version < 1)
+    {
+        for (const auto& [key, text] : kWaterLook)
+            written = WriteSetting(path, key, text) && written;
+        VF_LOG_INFO("settings upgraded: the water takes the smooth, bump-mapped look of the later clients "
+                    "(WaterReflect=0.7 WaterGlitter=0.4 WaterClarity=0.25 WaterSmooth=1 WaterBump=1 WaterFoam=0 "
+                    "WaterWaves=0.2)");
+    }
+    const Config defaults;
+    int added = 0;
+    for (const IntSetting& s : kIntSettings)
+        if (!HasSetting(path, s.key))
+            added += WriteSetting(path, s.key, std::to_string(defaults.*s.value)) ? 1 : 0;
+    for (const FloatSetting& s : kFloatSettings)
+        if (!HasSetting(path, s.key))
+            added += WriteSetting(path, s.key, SettingText(defaults.*s.value)) ? 1 : 0;
+    for (const BoolSetting& s : kBoolSettings)
+        if (!HasSetting(path, s.key))
+            added += WriteSetting(path, s.key, defaults.*s.value ? "1" : "0") ? 1 : 0;
+    if (added > 0)
+        VF_LOG_INFO("settings: %d setting%s missing from %s added with their default values", added,
+                    added == 1 ? "" : "s", path.c_str());
+    if (version < kSettingsVersion)
+        written = WriteSetting(path, kSettingsVersionKey, std::to_string(kSettingsVersion)) && written;
+    if (!written)
+        VF_LOG_ERROR("settings could not be upgraded in %s (error %lu)", path.c_str(), GetLastError());
 }
 
 bool ConfigStore::ReloadIfChanged()

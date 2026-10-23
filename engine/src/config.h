@@ -338,6 +338,7 @@ class ConfigStore
 {
 public:
     void Load(const std::string& path);
+    static void Upgrade(const std::string& path);
     bool ReloadIfChanged();
     void Override(const Config& config)
     {

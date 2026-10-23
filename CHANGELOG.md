@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 (2026-10-23)
+
+- `CoAVolFog.ini` keeps itself up to date: at the game's start, a setting the file lacks is added with its default
+  value, and an older file (no `SettingsVersion`) takes the water look of the later clients once (`WaterReflect=0.7`,
+  `WaterGlitter=0.4`, `WaterClarity=0.25`, `WaterSmooth=1`, `WaterBump=1`, `WaterFoam=0`, `WaterWaves=0.2`), then
+  `SettingsVersion=1`; what you change afterwards stays.
+
 ## 0.2.1 (2026-10-23)
 
 - Water in the style of the later clients' high quality:
