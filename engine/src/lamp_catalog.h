@@ -17,6 +17,13 @@ struct LampMap
     std::vector<uint8_t> beams;
 };
 
+struct ObjectModelLamps
+{
+    const lampfile::Lamp* lamps;
+    const uint8_t* beams;
+    uint32_t count;
+};
+
 class LampCatalog
 {
 public:
@@ -29,9 +36,15 @@ public:
     const char* Name(uint32_t offset) const;
     size_t LampTotal() const;
     size_t WindowTotal() const;
+    bool ObjectModel(uint32_t displayId, ObjectModelLamps& out) const;
+    size_t ObjectModelTotal() const { return m_objectModels.size(); }
+    size_t ObjectLampTotal() const { return m_objectLamps.size(); }
 
 private:
     std::vector<LampMap> m_maps;
+    std::vector<lampfile::ObjectModel> m_objectModels;
+    std::vector<lampfile::Lamp> m_objectLamps;
+    std::vector<uint8_t> m_objectBeams;
     std::vector<char> m_names;
     unsigned m_version = 0;
 };

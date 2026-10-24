@@ -6,7 +6,8 @@ namespace lampfile
 {
 
 constexpr char kMagic[4] = {'V', 'F', 'L', 'D'};
-constexpr uint32_t kVersion = 1;
+constexpr uint32_t kVersion = 2;
+constexpr uint32_t kVersionOne = 1;
 constexpr float kWorldHalfExtent = 17066.666f;
 constexpr float kCellSize = 128.0f;
 constexpr uint32_t kCellsPerSide = 267;
@@ -53,7 +54,9 @@ struct Header
     uint32_t mapCount;
     uint32_t nameTableOffset;
     uint32_t nameTableSize;
-    uint32_t reserved[3];
+    uint32_t objectModelCount;
+    uint32_t objectModelOffset;
+    uint32_t objectLampOffset;
 };
 
 struct MapEntry
@@ -89,6 +92,14 @@ struct Lamp
     uint32_t name;
 };
 
+struct ObjectModel
+{
+    uint32_t displayId;
+    uint32_t firstLamp;
+    uint32_t lampCount;
+    uint32_t reserved;
+};
+
 struct Window
 {
     float center[3];
@@ -109,6 +120,7 @@ static_assert(sizeof(MapEntry) == 32, "lampdata map entry");
 static_assert(sizeof(Cell) == 20, "lampdata cell");
 static_assert(sizeof(Lamp) == 40, "lampdata lamp");
 static_assert(sizeof(Window) == 64, "lampdata window");
+static_assert(sizeof(ObjectModel) == 16, "lampdata object model");
 
 inline uint32_t CellCoordinate(float worldAxis)
 {

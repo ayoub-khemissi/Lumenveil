@@ -66,6 +66,12 @@ struct MapLights
     uint32_t duplicateLamps = 0;
 };
 
+struct ObjectModelLights
+{
+    uint32_t displayId = 0;
+    std::vector<WorldLamp> lamps;
+};
+
 struct MapInfo
 {
     uint32_t id = 0;
@@ -112,6 +118,7 @@ public:
     MapLights ScanMap(const MapInfo& map, const std::vector<GameObjectSpawn>& gameObjects,
                       const std::vector<const ArchiveSet*>& readers = {}, const LiquidScanner* liquids = nullptr,
                       MapLiquids* liquidOut = nullptr);
+    std::vector<ObjectModelLights> ObjectModels(const std::vector<const ArchiveSet*>& readers = {});
     const std::unordered_map<std::string, uint32_t>& ModelPlacements() const { return m_modelPlacements; }
     const std::unordered_map<std::string, uint32_t>& WmoPlacements() const { return m_wmoPlacements; }
 

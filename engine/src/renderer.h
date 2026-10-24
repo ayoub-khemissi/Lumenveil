@@ -10,6 +10,7 @@
 #include "frame_profile.h"
 #include "lamp_selection.h"
 #include "lamp_tiles.h"
+#include "object_lamps.h"
 #include "shaft_memory.h"
 #include "terrain_relief.h"
 #include "terrain_shadow.h"
@@ -241,6 +242,7 @@ private:
     UINT m_glowH = 0;
     bool m_glowFailed = false;
     LampSelection m_lamps;
+    ObjectLamps m_objectLamps;
     BeltLantern m_lantern;
     IDirect3DTexture9* m_lampTable = nullptr;
     IDirect3DTexture9* m_lampTableStaging[kLampUploadRing] = {};

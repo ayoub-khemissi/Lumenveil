@@ -46,7 +46,8 @@ void Append(std::vector<char>& out, const T& value)
 
 }
 
-bool WriteLampFile(const std::filesystem::path& path, std::vector<MapLights>& maps)
+bool WriteLampFile(const std::filesystem::path& path, std::vector<MapLights>& maps,
+                   std::vector<ObjectModelLights>& objects)
 {
     NameTable names;
     std::vector<char> body;
@@ -102,12 +103,35 @@ bool WriteLampFile(const std::filesystem::path& path, std::vector<MapLights>& ma
         entries.push_back(entry);
     }
 
+    std::stable_sort(objects.begin(), objects.end(), [](const ObjectModelLights& a, const ObjectModelLights& b) {
+        return a.displayId < b.displayId;
+    });
+    const uint32_t objectModelOffset = static_cast<uint32_t>(directorySize + body.size());
+    uint32_t objectLamps = 0;
+    for (const ObjectModelLights& object : objects)
+    {
+        const lampfile::ObjectModel model{object.displayId, objectLamps, static_cast<uint32_t>(object.lamps.size()),
+                                          0};
+        Append(body, model);
+        objectLamps += model.lampCount;
+    }
+    const uint32_t objectLampOffset = static_cast<uint32_t>(directorySize + body.size());
+    for (ObjectModelLights& object : objects)
+        for (WorldLamp& lamp : object.lamps)
+        {
+            lamp.record.name = names.Add(lamp.source);
+            Append(body, lamp.record);
+        }
+
     lampfile::Header header{};
     std::memcpy(header.magic, lampfile::kMagic, sizeof(header.magic));
     header.version = lampfile::kVersion;
     header.mapCount = static_cast<uint32_t>(entries.size());
     header.nameTableOffset = static_cast<uint32_t>(directorySize + body.size());
     header.nameTableSize = static_cast<uint32_t>(names.Bytes().size());
+    header.objectModelCount = static_cast<uint32_t>(objects.size());
+    header.objectModelOffset = objectModelOffset;
+    header.objectLampOffset = objectLampOffset;
 
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
     if (!file)

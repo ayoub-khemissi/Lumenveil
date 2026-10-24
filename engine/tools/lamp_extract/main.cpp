@@ -201,7 +201,7 @@ bool LiquidsWanted(const Options& options, uint32_t mapId)
 std::string Signature(const ArchiveSet& archives, const Options& options)
 {
     std::ostringstream text;
-    text << "lamp_extract setup 1\n" << options.out.string() << "\n" << options.liquids.string() << "\n"
+    text << "lamp_extract setup 2\n" << options.out.string() << "\n" << options.liquids.string() << "\n"
          << options.waterTextures.string() << "\n" << options.locale << "\n" << (options.stock ? 1 : 0) << "\n";
     for (uint32_t id : options.maps)
         text << id << ",";
@@ -500,13 +500,19 @@ int main(int argc, char** argv)
             maps.push_back(std::move(lights));
     }
 
+    std::vector<ObjectModelLights> objectModels = scanner.ObjectModels(readers);
+    size_t objectLamps = 0;
+    for (const ObjectModelLights& object : objectModels)
+        objectLamps += object.lamps.size();
+    std::cout << objectModels.size() << " game object models with " << objectLamps << " lights\n";
+
     double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
     if (!options.census.empty())
     {
         std::ofstream report(options.census);
         WriteCensus(report, {archives, models, wmos, scanner, maps, places, seconds});
     }
-    if (!WriteLampFile(options.out, maps))
+    if (!WriteLampFile(options.out, maps, objectModels))
     {
         std::cerr << "could not write " << options.out.string() << "\n";
         return 1;
@@ -520,7 +526,8 @@ int main(int argc, char** argv)
         return 1;
     }
     std::cout << "the fog DLL's reader accepts it: " << reread.LampTotal() << " lamps, " << reread.WindowTotal()
-              << " windows\n";
+              << " windows, " << reread.ObjectModelTotal() << " game object models with " << reread.ObjectLampTotal()
+              << " lamps\n";
     if (!options.liquids.empty() && WriteLiquids(options, liquidMaps) != 0)
         return 1;
     if (!options.waterTextures.empty() && RunWaterTextures(options, archives) != 0)

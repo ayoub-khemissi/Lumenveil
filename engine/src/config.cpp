@@ -202,13 +202,13 @@ const BoolSetting kBoolSettings[] = {
     {"WaterMemory", &Config::waterMemory}, {"TerrainMaterials", &Config::terrainMaterials},
     {"SunMarker", &Config::sunMarker},     {"ClientShadowMaps", &Config::clientShadowMaps},
     {"Relief", &Config::relief},         {"SkyboxMoons", &Config::skyboxMoons},
-    {"ReliefModels", &Config::reliefModels},
+    {"ReliefModels", &Config::reliefModels}, {"ObjectLamps", &Config::objectLamps},
 };
 
 const char* const kGlobalOnlySettings[] = {
     "Quality",     "DebugView",  "LogLevel",    "DrawLog",     "Lantern",          "Relief",    "FarClipMax",
     "ShaftMemory", "WaterMemory", "LiquidDepth", "Underwater", "ClientShadowMaps", "SunMarker",
-    "SkyboxMoons", "PerfLog",     "TerrainMaterials", "ReliefModels",
+    "SkyboxMoons", "PerfLog",     "TerrainMaterials", "ReliefModels", "ObjectLamps",
 };
 
 struct NamedKey
@@ -1051,10 +1051,11 @@ bool ConfigStore::ReloadIfChanged()
                 m_config.waterMemory ? 1 : 0);
     VF_LOG_INFO("  wet surfaces: sheen=%.2f wet=%.2f puddles=%.2f materials=%d", m_config.surfaceSheen,
                 m_config.wetSurfaces, m_config.puddles, m_config.terrainMaterials ? 1 : 0);
-    VF_LOG_INFO("  lantern=%d light=%.2f halo=%.2f swing=%.2f key=%s effects=%.2f corpses=%.2f spotkey=%s",
+    VF_LOG_INFO("  lantern=%d light=%.2f halo=%.2f swing=%.2f key=%s effects=%.2f corpses=%.2f objects=%d "
+                "spotkey=%s",
                 m_config.lanternMode, m_config.lanternLight, m_config.lanternHalo, m_config.lanternSwing,
                 HotkeyName(m_config.lanternKey).c_str(), m_config.effectLight, m_config.corpseLight,
-                HotkeyName(m_config.spotKey).c_str());
+                m_config.objectLamps ? 1 : 0, HotkeyName(m_config.spotKey).c_str());
     VF_LOG_INFO("  open land: dust=%.2f humid=%.2f horizon=%.2f clouds=%.2f cover=%.2f size=%.0f farlights=%.2f "
                 "dry=%s green=%s",
                 m_config.dustHaze, m_config.humidHaze, m_config.horizonFog, m_config.cloudShadows,

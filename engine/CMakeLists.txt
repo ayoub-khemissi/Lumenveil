@@ -165,6 +165,7 @@ add_library(CoAVolFog SHARED
     src/liquid_map.cpp
     src/log.cpp
     src/material_catalog.cpp
+    src/object_lamps.cpp
     src/overlay.cpp
     src/region_panel.cpp
     src/region_settings.cpp
@@ -202,8 +203,8 @@ target_compile_definitions(version PRIVATE WIN32_LEAN_AND_MEAN)
 
 add_executable(vfog_harness tests/harness.cpp src/belt_lantern.cpp src/cloud_noise.cpp src/config.cpp
     src/corpse_lights.cpp src/drift_noise.cpp src/effect_lights.cpp src/fog_data.cpp src/fog_model.cpp src/lamp_catalog.cpp
-    src/lamp_selection.cpp src/lamp_tiles.cpp src/liquid_map.cpp src/log.cpp src/material_catalog.cpp src/region_settings.cpp
-    src/region_zones.cpp src/relief_catalog.cpp src/runtime_heights.cpp
+    src/lamp_selection.cpp src/lamp_tiles.cpp src/liquid_map.cpp src/log.cpp src/material_catalog.cpp
+    src/object_lamps.cpp src/region_settings.cpp src/region_zones.cpp src/relief_catalog.cpp src/runtime_heights.cpp
     src/shader_splice.cpp src/spots.cpp
     src/terrain_shadow.cpp src/water_lamps.cpp src/water_rain.cpp
     src/water_ripples.cpp src/water_rings.cpp src/water_waves.cpp src/wet_surfaces.cpp src/world_controls.cpp

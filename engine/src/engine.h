@@ -17,12 +17,22 @@ enum class WeatherKind
 
 constexpr int kMaxCorpseInputs = 16;
 constexpr int kMaxUnitInputs = 32;
+constexpr int kMaxObjectInputs = 48;
 
 struct UnitInput
 {
     float feet[3];
     float boundingRadius;
     int target;
+    uint64_t guid;
+};
+
+struct ObjectInput
+{
+    float position[3];
+    float facing;
+    float scale;
+    uint32_t displayId;
     uint64_t guid;
 };
 
@@ -76,6 +86,8 @@ struct FrameInputs
     uint32_t corpseIds[kMaxCorpseInputs];
     int unitCount;
     UnitInput units[kMaxUnitInputs];
+    int objectCount;
+    ObjectInput objects[kMaxObjectInputs];
 };
 
 namespace engine
@@ -153,6 +165,14 @@ constexpr uint32_t kCreatureGuidHigh = 0xF130;
 constexpr uint32_t kVehicleGuidHigh = 0xF150;
 constexpr uint32_t kPlayerGuidHigh = 0x0000;
 constexpr uint32_t kPetGuidHigh = 0xF140;
+constexpr uint32_t kGameObjectGuidHigh = 0xF110;
+constexpr uint32_t kGameObjectTypeMask = 0x20;
+constexpr uint32_t kGameObjectTypeId = 5;
+constexpr uintptr_t kObjectScaleField = 0x10;
+constexpr uintptr_t kGameObjectDisplayField = 0x20;
+constexpr float kMinObjectScale = 0.01f;
+constexpr float kMaxObjectScale = 50.0f;
+constexpr float kObjectScanYards = 250.0f;
 constexpr uint32_t kMaxVisitedObjects = 4096;
 constexpr double kCorpseScanSeconds = 0.1;
 constexpr float kUnitScanYards = 80.0f;

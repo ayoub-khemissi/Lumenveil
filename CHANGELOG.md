@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.1 (2026-10-25)
+
+- Campfires, braziers, candles and torches that the server places as game objects (cooking fires, the fires of
+  camps and towns, the festival braziers and candles) are lamps like the others: they light the ground, walls and
+  characters around them from where they stand, cast lamp shadows, glow in the fog, flicker and show in the water.
+  Before, the setup could not find them and only the spell light saw their flames, which it placed on whatever stood
+  behind them, so their light slid over the walls as the camera turned.
+  - `Lumenveil-Setup.cmd` also reads the lights of every game object model into `lampdata.bin`; run it again after
+    installing this version (its first run does the whole setup again).
+  - In the game, the objects within 250 yd whose model has a light are read from the client's own list of objects.
+  - `ObjectLamps=0` ("Game object lamps" in the settings window) switches them off, for comparisons.
+- The spell light leaves the flames of these lamps to the lamps, as it already did for the world's own, over the
+  whole size of a fire the server makes larger than its model (Orgrimmar's bonfires stand 1.9 to 2.6 times their
+  model's size).
+
 ## 0.4.2 (2026-10-23)
 
 - The light of your weapon or armour (`EffectLight`), the lantern and the lamps no longer draw the terrain's

@@ -5,4 +5,5 @@
 
 #include "world_scan.h"
 
-bool WriteLampFile(const std::filesystem::path& path, std::vector<MapLights>& maps);
+bool WriteLampFile(const std::filesystem::path& path, std::vector<MapLights>& maps,
+                   std::vector<ObjectModelLights>& objects);

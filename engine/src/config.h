@@ -221,6 +221,7 @@ struct Config
     float windowLight = 2.0f;
     float effectLight = 1.0f;
     float corpseLight = 1.0f;
+    bool objectLamps = true;
     int lanternMode = kLanternAuto;
     float lanternLight = 1.0f;
     float lanternHalo = 0.3f;

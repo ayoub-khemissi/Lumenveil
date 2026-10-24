@@ -2095,6 +2095,7 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
     m_surfaceBeforeLateDraws = baselineFresh && occluderFresh;
     if (!halosBefore)
         m_lamps.ForgetVisibility();
+    const std::vector<ObjectLamp>& objects = m_objectLamps.Update(GlobalLampCatalog(), in, cfg.objectLamps);
     m_profile.Begin(dev, ProfileSection::Effects);
     const std::vector<EffectLamp>* effects =
         UpdateEffects(dev, depthTexture, in, fog, effectScene && baselineFresh && occluderFresh);
@@ -2116,7 +2117,8 @@ void Renderer::RenderLamps(IDirect3DDevice9* dev, IDirect3DTexture9* depthTextur
     m_profile.AddCpuTicks(ProfileSection::LampUnits, selectStart - unitsStart);
     const LampTable& table =
         m_lamps.Update(GlobalLampCatalog(), in, cfg, fog.lampHaze, fog.lampLight, fog.windowLight, fog.lanternGlow,
-                       &lantern, fog.lanternLight, m_carried.empty() ? nullptr : &m_carried, 1.0f, fog.farLightCore);
+                       &lantern, fog.lanternLight, m_carried.empty() ? nullptr : &m_carried, 1.0f, fog.farLightCore,
+                       &objects);
     std::bitset<kLampSlots> effectSlots;
     for (const EffectLamp& carried : m_carried)
     {
@@ -2457,7 +2459,8 @@ const std::vector<EffectLamp>* Renderer::UpdateEffects(IDirect3DDevice9* dev, ID
     if (measured)
     {
         EffectClusterStats stats = {};
-        clusters = ClusterEffects(m_effectMeasurement, GlobalLampCatalog().Map(in.mapId), &stats);
+        clusters = ClusterEffects(m_effectMeasurement, GlobalLampCatalog().Map(in.mapId), &stats,
+                                  &m_objectLamps.Lamps());
         m_effectReport.lastClusters = m_effectLog.lastClusters = stats;
     }
     m_effectTracker.Update(measured ? &clusters : nullptr, in.camPos, in.seconds, in.mapId,
@@ -2531,6 +2534,10 @@ void Renderer::LogLamps(const FogParams& fog)
                 s.farDrawn, s.inView ? catalog.Name(s.nearestName) : "-", s.nearestYards, fog.windowLight,
                 s.windowsNearby, kWindowSearchYards, s.windowsInView, s.windowsDrawn, fog.lanternGlow,
                 fog.farLightCore, s.cores);
+    VF_LOG_INFO("  game object lamps: %d object%s with a lamp's model within %.0f yd, %d lamps, %d left out at a "
+                "placed lamp or another object's",
+                m_objectLamps.Objects(), m_objectLamps.Objects() == 1 ? "" : "s", engine::kObjectScanYards,
+                static_cast<int>(m_objectLamps.Lamps().size()), m_objectLamps.Duplicates());
 }
 
 void Renderer::LogLantern(const FrameInputs& in, const Config& cfg, const FogParams& fog)

@@ -23,12 +23,13 @@ client only in memory, never on disk:
 
 It reads a few values of the running client: the time of day, the sun and moon direction, the light and fog colours
 of the zone, the weather, the zone, the camera, the player's position, whether the player is indoors, and where the
-characters and creatures near the camera stand (to place the light of their spells at them) and which corpses can be
-looted (to light their sparkle). It calls a few of the client's own functions: its indoor test; its object list walk;
-its collision test, to learn the height of the ground around the camera; its far-clip
-setter, to apply the view distance again when the mod is switched off or on; and, only while the region panel holds
-them, its clock and weather setters, which change the time of day and the weather on the player's own screen and
-nowhere else. It sends nothing to the server and runs none of the game's scripts.
+characters and creatures near the camera stand (to place the light of their spells at them), which corpses can be
+looted (to light their sparkle) and which game objects near the camera show a lamp's model, with their position,
+facing and scale (to light the campfires and braziers the server places). It calls a few of the client's own
+functions: its indoor test; its object list walk; its collision test, to learn the height of the ground around the
+camera; its far-clip setter, to apply the view distance again when the mod is switched off or on; and, only while the
+region panel holds them, its clock and weather setters, which change the time of day and the weather on the player's
+own screen and nowhere else. It sends nothing to the server and runs none of the game's scripts.
 
 ## The passes
 
@@ -73,8 +74,11 @@ glowing glass, with colour and flicker rules ported from Everwood. For water it 
 It writes a compact binary file that the DLL maps at start. Both files describe the player's own copy of the game and
 stay on their computer.
 
-Lights that a server places as game objects (some campfires, braziers and lamp posts) are not in the game's files,
-so the setup tool can't find them and they give no light.
+Lights that a server places as game objects (cooking fires, camps' campfires, festival braziers and candles) are
+not placed in the game's files, but their models are. So the setup tool also goes through every game object model
+of `GameObjectDisplayInfo.dbc` and writes the lights of each, by display id. In the game, Lumenveil reads the client's
+list of objects every tenth of a second, takes the game objects within 250 yards whose display has lights, and places
+those lights at the object's position, facing and scale, as lamps like the others (`ObjectLamps`).
 
 ## The code
 

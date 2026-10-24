@@ -390,34 +390,35 @@ void LampSelection::WriteScreenRows(int slot, const float* view, const FrameInpu
     s.fresh = false;
 }
 
-size_t LampSelection::PickLamps(const LampMap& map, const FrameInputs& in, size_t wanted, size_t wantedFar,
-                                bool lanterns)
+size_t LampSelection::PickLamps(const LampMap* map, const std::vector<ObjectLamp>* objects, const FrameInputs& in,
+                                size_t wanted, size_t wantedFar, bool lanterns)
 {
     m_candidates.clear();
     if (wanted == 0)
         return 0;
     const float searchSquared = kLampSearchYards * kLampSearchYards;
-    ForEachLampNear(map, in.camPos[0], in.camPos[1], kLampSearchYards,
-                    [&](uint32_t index, const lampfile::Lamp& lamp) {
-                        if ((lamp.flags & lampfile::kLampWmoFixture) ||
-                            (!lanterns && (lamp.flags & lampfile::kLampWmoLantern)))
-                            return;
-                        float relative[3];
-                        for (int k = 0; k < 3; ++k)
-                            relative[k] = lamp.position[k] - in.camPos[k];
-                        const float distanceSquared =
-                            relative[0] * relative[0] + relative[1] * relative[1] + relative[2] * relative[2];
-                        if (distanceSquared > searchSquared)
-                            return;
-                        ++m_stats.nearby;
-                        float view[3];
-                        TransformDirection(relative, in.cameraRelativeView, view);
-                        if (SphereInView(view, LampSurfaceReach(lamp.reach), in.glProjection))
-                            m_candidates.push_back({LampImportance(lamp.intensity,
-                                                                   (lamp.flags & lampfile::kLampIndoor) != 0,
-                                                                   distanceSquared),
-                                                    distanceSquared, index});
-                    });
+    const auto consider = [&](uint32_t id, const lampfile::Lamp& lamp) {
+        if ((lamp.flags & lampfile::kLampWmoFixture) || (!lanterns && (lamp.flags & lampfile::kLampWmoLantern)))
+            return;
+        float relative[3];
+        for (int k = 0; k < 3; ++k)
+            relative[k] = lamp.position[k] - in.camPos[k];
+        const float distanceSquared = relative[0] * relative[0] + relative[1] * relative[1] + relative[2] * relative[2];
+        if (distanceSquared > searchSquared)
+            return;
+        ++m_stats.nearby;
+        float view[3];
+        TransformDirection(relative, in.cameraRelativeView, view);
+        if (SphereInView(view, LampSurfaceReach(lamp.reach), in.glProjection))
+            m_candidates.push_back(
+                {LampImportance(lamp.intensity, (lamp.flags & lampfile::kLampIndoor) != 0, distanceSquared),
+                 distanceSquared, id, &lamp});
+    };
+    if (map)
+        ForEachLampNear(*map, in.camPos[0], in.camPos[1], kLampSearchYards, consider);
+    if (objects)
+        for (const ObjectLamp& object : *objects)
+            consider(kObjectBit | (object.id & kObjectLampIdMask), object.lamp);
     m_stats.inView = static_cast<int>(m_candidates.size());
     const auto nearest = std::min_element(m_candidates.begin(), m_candidates.end(),
                                           [](const Candidate& a, const Candidate& b) {
@@ -426,7 +427,7 @@ size_t LampSelection::PickLamps(const LampMap& map, const FrameInputs& in, size_
     if (nearest != m_candidates.end())
     {
         m_stats.nearestYards = std::sqrt(nearest->distanceSquared);
-        m_stats.nearestName = map.lamps[nearest->lamp].name;
+        m_stats.nearestName = nearest->record->name;
     }
     const auto ranked = [](const Candidate& a, const Candidate& b) {
         return a.importance != b.importance ? a.importance > b.importance : a.lamp < b.lamp;
@@ -438,7 +439,7 @@ size_t LampSelection::PickLamps(const LampMap& map, const FrameInputs& in, size_
     const auto farEnd = std::partition(farBegin, m_candidates.end(),
                                        [&](const Candidate& c) { return c.distanceSquared >= farSquared; });
     for (auto c = farBegin; c != farEnd; ++c)
-        c->importance = FarHaloRank(map.lamps[c->lamp].intensity, map.lamps[c->lamp].reach, c->distanceSquared);
+        c->importance = FarHaloRank(c->record->intensity, c->record->reach, c->distanceSquared);
     const size_t farKept = std::min(wantedFar, static_cast<size_t>(farEnd - farBegin));
     std::partial_sort(farBegin, farBegin + farKept, farEnd, ranked);
     for (size_t i = kept; i < kept + farKept; ++i)
@@ -496,7 +497,8 @@ size_t LampSelection::PickWindows(const LampMap& map, const FrameInputs& in, siz
 const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameInputs& in, const Config& cfg,
                                            float haze, float light, float windowLight, float lanternGlow,
                                            const LanternLamp* lantern, float lanternLight,
-                                           const std::vector<EffectLamp>* effects, float effectLight, float farCore)
+                                           const std::vector<EffectLamp>* effects, float effectLight, float farCore,
+                                           const std::vector<ObjectLamp>* objects)
 {
     const double step = m_clockValid ? std::clamp(in.seconds - m_seconds, 0.0, kMaxLampStepSeconds) : 0.0;
     m_seconds = in.seconds;
@@ -510,16 +512,17 @@ const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameIn
         m_mapId = in.mapId;
     }
     const LampMap* map = catalog.Map(in.mapId);
+    const bool lampsHere = map || (objects && !objects->empty());
     const bool carried = lantern && lantern->placed && lantern->weight > 0.0f && lanternLight > 0.0f;
     const size_t wantedEffects =
         effects && effectLight > 0.0f ? std::min(effects->size(), static_cast<size_t>(kEffectSlots)) : 0;
     const size_t wantedLamps =
-        map && (haze > 0.0f || light > 0.0f || farCore > 0.0f)
+        lampsHere && (haze > 0.0f || light > 0.0f || farCore > 0.0f)
             ? static_cast<size_t>(std::clamp(cfg.lampCount, 0, kMaxLampCount))
             : 0;
     const size_t wantedWindows = map && windowLight > 0.0f ? static_cast<size_t>(kWindowSlots) : 0;
     m_farCore = farCore;
-    const size_t wantedFar = map && (haze > 0.0f || farCore > 0.0f) ? static_cast<size_t>(kFarHaloSlots) : 0;
+    const size_t wantedFar = lampsHere && (haze > 0.0f || farCore > 0.0f) ? static_cast<size_t>(kFarHaloSlots) : 0;
     if (wantedLamps + wantedWindows + wantedEffects + wantedFar == 0 && !carried)
     {
         Reset();
@@ -528,11 +531,10 @@ const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameIn
 
     m_candidates.clear();
     m_windowCandidates.clear();
+    if (lampsHere)
+        PickLamps(map, objects, in, wantedLamps, wantedFar, lanternGlow > 0.0f);
     if (map)
-    {
-        PickLamps(*map, in, wantedLamps, wantedFar, lanternGlow > 0.0f);
         PickWindows(*map, in, wantedWindows);
-    }
     for (const Candidate& window : m_windowCandidates)
         m_candidates.push_back({window.importance, window.distanceSquared, window.lamp | kWindowBit});
     for (size_t i = 0; i < wantedEffects; ++i)
@@ -554,16 +556,18 @@ const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameIn
     for (size_t i = 0; i < kept; ++i)
     {
         const uint32_t lamp = m_candidates[i].lamp;
-        bool placed = false;
-        for (const Slot& slot : m_slots)
-            placed = placed || slot.lamp == lamp;
+        Slot* placed = nullptr;
+        for (Slot& slot : m_slots)
+            placed = slot.lamp == lamp ? &slot : placed;
         const bool farHalo = (lamp & kSlotKindMask) == kHaloOnlyBit;
         for (int k = farHalo ? kSurfaceSlots : 0; k < (farHalo ? kLampSlots : kSurfaceSlots) && !placed; ++k)
             if (m_slots[k].lamp == kNoLamp)
             {
                 m_slots[k] = Slot{lamp, fadeStep, true};
-                placed = true;
+                placed = &m_slots[k];
             }
+        if (placed && ObjectSlot(lamp) && m_candidates[i].record)
+            placed->object = *m_candidates[i].record;
     }
 
     m_table.slots = 0;
@@ -572,7 +576,8 @@ const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameIn
     {
         const Slot& slot = m_slots[k];
         const bool effect = slot.lamp != kNoLamp && (slot.lamp & kSlotKindMask) == kEffectBit;
-        if (slot.lamp == kNoLamp || (!map && slot.lamp != kLanternSlotId && !effect))
+        const bool object = slot.lamp != kNoLamp && ObjectSlot(slot.lamp);
+        if (slot.lamp == kNoLamp || (!map && slot.lamp != kLanternSlotId && !effect && !object))
         {
             for (auto& row : m_table.texels)
                 std::memset(row[k], 0, sizeof(row[k]));
@@ -602,7 +607,8 @@ const LampTable& LampSelection::Update(const LampCatalog& catalog, const FrameIn
         else
         {
             const bool haloOnly = (slot.lamp & kHaloOnlyBit) != 0;
-            WriteSlot(k, map->lamps[slot.lamp & ~kHaloOnlyBit], in, cfg, haze, light, lanternGlow, haloOnly);
+            WriteSlot(k, object ? slot.object : map->lamps[slot.lamp & ~kHaloOnlyBit], in, cfg, haze, light,
+                      lanternGlow, haloOnly);
             ++(haloOnly ? m_stats.farDrawn : m_stats.drawn);
         }
         m_table.slots = k + 1;

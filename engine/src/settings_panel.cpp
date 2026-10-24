@@ -489,6 +489,11 @@ bool DrawNight(Config& c)
                       "walls and characters around them in their own colour, up to 6 at a time; the placed lamps' "
                       "own flames are left to the lamps. In rain or snow only coloured glows count. By day the "
                       "lamps' By day share; none in the ghost world. 0 = off");
+    changed |= Toggle("Game object lamps", c.objectLamps,
+                      "Campfires, braziers, candles and torches the server places (cooking fires, camps, festival "
+                      "braziers) light and glow like the lamps of the world, where they stand, from the client's own "
+                      "list of objects. Needs lampdata.bin from this version's Lumenveil-Setup.cmd. Off = they only "
+                      "give spell light");
     changed |= Slider("Loot sparkle", c.corpseLight, 0.0f, 2.0f, "%.2f",
                       "Corpses you can loot give a small golden twinkle of light, the nearest 4 within 40 yd, from "
                       "the client's own list of what is lootable. By day the lamps' By day share; none in the ghost "

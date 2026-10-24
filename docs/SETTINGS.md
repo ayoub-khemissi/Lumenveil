@@ -36,6 +36,7 @@ the file from the zip.
 | `WindowLight` | Light from lit windows | |
 | `FarLights` | Distant lamps seen as points of light at night | |
 | `EffectLight` | Light from spells, enchants and glowing projectiles | |
+| `ObjectLamps` | Campfires, braziers and candles the server places light the world like the other lamps (1) or not (0) | a fire's light seems to move with the camera |
 | `Lantern` | A lantern at your belt: 0 off, 1 in the dark, 2 always (Ctrl+F6) | |
 | `WaterReflect`, `WaterGlitter`, `WaterWaves` | Reflections, sun glitter and waves on water | |
 | `WetSurfaces`, `Puddles` | Wet stone and soil, and puddles, in rain; 0 in the shipped settings | |

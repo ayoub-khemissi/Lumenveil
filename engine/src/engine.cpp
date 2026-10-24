@@ -122,12 +122,18 @@ struct CorpseScan
     uint64_t unitGuids[kMaxUnitInputs];
     uint64_t unitTargets[kMaxUnitInputs];
     float unitDistanceSquared[kMaxUnitInputs];
+    const LampCatalog* lamps;
+    int objectCount;
+    int litObjects;
+    ObjectInput objects[kMaxObjectInputs];
+    float objectDistanceSquared[kMaxObjectInputs];
 };
 
 bool g_corpseReaderEnabled = false;
 bool g_corpseReaderFailed = false;
 bool g_corpseLogged = false;
 bool g_unitsLogged = false;
+bool g_objectsLogged = false;
 double g_corpseScanSeconds = -1.0;
 CorpseScan g_corpses = {};
 
@@ -441,12 +447,71 @@ void KeepUnit(CorpseScan& scan, uint64_t guid, uintptr_t fields, const float* at
     scan.unitDistanceSquared[slot] = squared;
 }
 
+void KeepObject(CorpseScan& scan, uint64_t guid)
+{
+    if (!scan.lamps)
+        return;
+    void* object = reinterpret_cast<ObjectPointerFn>(kObjectPointer)(
+        guid, kGameObjectTypeMask, reinterpret_cast<const char*>(kObjectPointerFile), kObjectPointerLine);
+    if (!object)
+        return;
+    const uintptr_t base = reinterpret_cast<uintptr_t>(object);
+    if (Read<uint32_t>(base + kObjectTypeId) != kGameObjectTypeId)
+        return;
+    const uintptr_t fields = Read<uintptr_t>(base + kObjectFields);
+    if (!fields)
+        return;
+    const uint32_t displayId = Read<uint32_t>(fields + kGameObjectDisplayField);
+    ObjectModelLamps model = {};
+    if (!scan.lamps->ObjectModel(displayId, model))
+        return;
+    ++scan.litObjects;
+    const uintptr_t vtable = Read<uintptr_t>(base);
+    float buffer[3] = {};
+    const float* position =
+        reinterpret_cast<UnitPositionFn>(Read<uintptr_t>(vtable + kUnitPositionVirtual))(object, nullptr, buffer);
+    float at[3];
+    ReadFloats(reinterpret_cast<uintptr_t>(position), at, 3);
+    const float facing = reinterpret_cast<UnitFacingFn>(Read<uintptr_t>(vtable + kUnitFacingVirtual))(object, nullptr);
+    const float scale = Read<float>(fields + kObjectScaleField);
+    if (!Finite(at, 3) || !std::isfinite(facing) || !std::isfinite(scale))
+        return;
+    const float d[3] = {at[0] - scan.from[0], at[1] - scan.from[1], at[2] - scan.from[2]};
+    const float squared = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    if (squared > kObjectScanYards * kObjectScanYards)
+        return;
+    int slot = scan.objectCount;
+    if (scan.objectCount == kMaxObjectInputs)
+    {
+        slot = 0;
+        for (int k = 1; k < kMaxObjectInputs; ++k)
+            if (scan.objectDistanceSquared[k] > scan.objectDistanceSquared[slot])
+                slot = k;
+        if (scan.objectDistanceSquared[slot] <= squared)
+            return;
+    }
+    else
+        ++scan.objectCount;
+    ObjectInput& o = scan.objects[slot];
+    std::memcpy(o.position, at, sizeof(o.position));
+    o.facing = facing;
+    o.scale = std::clamp(scale > 0.0f ? scale : 1.0f, kMinObjectScale, kMaxObjectScale);
+    o.displayId = displayId;
+    o.guid = guid;
+    scan.objectDistanceSquared[slot] = squared;
+}
+
 int __cdecl VisitCorpse(uint64_t guid, void* context)
 {
     CorpseScan& scan = *static_cast<CorpseScan*>(context);
     if (++scan.visited > kMaxVisitedObjects)
         return 0;
     const uint32_t high = static_cast<uint32_t>(guid >> 48);
+    if (high == kGameObjectGuidHigh)
+    {
+        KeepObject(scan, guid);
+        return 1;
+    }
     const bool creature = high == kCreatureGuidHigh || high == kVehicleGuidHigh;
     if (!creature && high != kPlayerGuidHigh && high != kPetGuidHigh)
         return 1;
@@ -546,6 +611,7 @@ void ReadCorpses(FrameInputs& out)
 {
     out.corpseCount = 0;
     out.unitCount = 0;
+    out.objectCount = 0;
     if (!g_corpseReaderEnabled || g_corpseReaderFailed)
         return;
     if (g_corpseScanSeconds < 0.0 || out.seconds - g_corpseScanSeconds >= kCorpseScanSeconds ||
@@ -554,12 +620,13 @@ void ReadCorpses(FrameInputs& out)
         g_corpseScanSeconds = out.seconds;
         CorpseScan scan = {};
         std::memcpy(scan.from, out.camPos, sizeof(scan.from));
+        scan.lamps = &GlobalLampCatalog();
         if (!ScanCorpsesGuarded(scan))
         {
             g_corpseReaderFailed = true;
             g_corpses = {};
-            VF_LOG_ERROR("exception walking the client's objects; no light from lootable corpses and no spell "
-                         "glows placed at units for this session");
+            VF_LOG_ERROR("exception walking the client's objects; no light from lootable corpses, no spell glows "
+                         "placed at units and no lamps of game objects for this session");
             return;
         }
         int targeted = 0;
@@ -579,6 +646,15 @@ void ReadCorpses(FrameInputs& out)
                         "light from them and the paths to their targets)",
                         scan.unitCount, kUnitScanYards, scan.visited, targeted);
         }
+        if (!g_objectsLogged && scan.objectCount > 0)
+        {
+            g_objectsLogged = true;
+            VF_LOG_INFO("game objects: %d with a lamp's model among %u objects, the nearest %d within %.0f yd lit as "
+                        "lamps (display %u at %.1f %.1f %.1f, facing %.2f, scale %.2f)",
+                        scan.litObjects, scan.visited, scan.objectCount, kObjectScanYards, scan.objects[0].displayId,
+                        scan.objects[0].position[0], scan.objects[0].position[1], scan.objects[0].position[2],
+                        scan.objects[0].facing, scan.objects[0].scale);
+        }
         if (!g_corpseLogged && scan.count > 0)
         {
             g_corpseLogged = true;
@@ -591,8 +667,8 @@ void ReadCorpses(FrameInputs& out)
     {
         g_corpseReaderFailed = true;
         g_corpses = {};
-        VF_LOG_ERROR("exception reading where the units stand; no light from lootable corpses and no spell glows "
-                     "placed at units for this session");
+        VF_LOG_ERROR("exception reading where the units stand; no light from lootable corpses, no spell glows "
+                     "placed at units and no lamps of game objects for this session");
         return;
     }
     out.corpseCount = g_corpses.count;
@@ -600,6 +676,8 @@ void ReadCorpses(FrameInputs& out)
     std::memcpy(out.corpseIds, g_corpses.ids, sizeof(out.corpseIds));
     out.unitCount = g_corpses.unitCount;
     std::memcpy(out.units, g_corpses.units, sizeof(out.units));
+    out.objectCount = g_corpses.objectCount;
+    std::memcpy(out.objects, g_corpses.objects, sizeof(out.objects));
 }
 
 void ReadPlayer(FrameInputs& out)

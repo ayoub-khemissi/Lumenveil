@@ -2,6 +2,7 @@
 
 #include "engine.h"
 #include "lamp_catalog.h"
+#include "object_lamps.h"
 
 #include <cstdint>
 #include <vector>
@@ -213,7 +214,8 @@ float EffectTargetRingYards(float boundingRadius);
 int EffectUnitAnchors(const UnitInput* units, int count, EffectAnchor* out);
 bool CarriedByUnit(const EffectFrame& f, const float* position, uint64_t& unit, float* offset);
 std::vector<EffectCluster> ClusterEffects(const EffectMeasurement& m, const LampMap* lamps,
-                                          EffectClusterStats* stats = nullptr);
+                                          EffectClusterStats* stats = nullptr,
+                                          const std::vector<ObjectLamp>* objects = nullptr);
 
 struct EffectVelocity
 {

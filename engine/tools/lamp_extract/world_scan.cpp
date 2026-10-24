@@ -466,6 +466,41 @@ MapLights WorldScanner::ScanMap(const MapInfo& map, const std::vector<GameObject
     return out;
 }
 
+std::vector<ObjectModelLights> WorldScanner::ObjectModels(const std::vector<const ArchiveSet*>& readers)
+{
+    std::vector<std::pair<uint32_t, std::string>> displays;
+    for (const auto& [displayId, model] : m_displayModels)
+        if (!model.empty() && !IsWmoPath(model))
+            displays.emplace_back(displayId, model);
+    std::sort(displays.begin(), displays.end());
+    std::vector<std::string> models;
+    for (const auto& display : displays)
+        models.push_back(display.second);
+    m_models.Prepare(models, readers.empty() ? std::vector<const ArchiveSet*>{&m_archives} : readers);
+    std::vector<ObjectModelLights> out;
+    for (const auto& [displayId, model] : displays)
+    {
+        ObjectModelLights object;
+        object.displayId = displayId;
+        for (const ModelLight& light : m_models.Of(model).lights)
+        {
+            const lampfile::Lamp record =
+                LampRecord(light.position, light.color, light.intensity, light.reach, light.kind,
+                           static_cast<uint16_t>(light.flags | lampfile::kLampGameObject));
+            bool duplicate = false;
+            for (const WorldLamp& kept : object.lamps)
+                duplicate = duplicate ||
+                            (kept.record.kind == record.kind &&
+                             Length(LampPosition(kept.record) - LampPosition(record)) < kDuplicateDistance);
+            if (!duplicate)
+                object.lamps.push_back({record, M2PathOf(model)});
+        }
+        if (!object.lamps.empty())
+            out.push_back(std::move(object));
+    }
+    return out;
+}
+
 bool WorldScanner::InsideAnInterior(Vec3 p) const
 {
     for (const PlacedInteriors& placed : m_interiors)

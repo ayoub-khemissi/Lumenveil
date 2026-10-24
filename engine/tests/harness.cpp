@@ -7188,6 +7188,14 @@ struct LampFile
 {
     std::vector<char> bytes;
     uint32_t lampOffset;
+    uint32_t objectModelOffset;
+    uint32_t objectLampOffset;
+};
+
+struct ObjectModelRecords
+{
+    uint32_t displayId;
+    std::vector<lampfile::Lamp> lamps;
 };
 
 uint32_t WindowCellKey(const lampfile::Window& window)
@@ -7195,7 +7203,8 @@ uint32_t WindowCellKey(const lampfile::Window& window)
     return lampfile::CellKey(lampfile::CellCoordinate(window.center[0]), lampfile::CellCoordinate(window.center[1]));
 }
 
-LampFile LampFileBytes(int mapId, std::vector<lampfile::Lamp> lamps, std::vector<lampfile::Window> windows = {})
+LampFile LampFileBytes(int mapId, std::vector<lampfile::Lamp> lamps, std::vector<lampfile::Window> windows = {},
+                       const std::vector<ObjectModelRecords>& objects = {})
 {
     std::stable_sort(lamps.begin(), lamps.end(),
                      [](const lampfile::Lamp& a, const lampfile::Lamp& b) { return LampCellKey(a) < LampCellKey(b); });
@@ -7235,14 +7244,29 @@ LampFile LampFileBytes(int mapId, std::vector<lampfile::Lamp> lamps, std::vector
     entry.lampOffset = entry.cellOffset + entry.cellCount * sizeof(lampfile::Cell);
     entry.windowCount = static_cast<uint32_t>(windows.size());
     entry.windowOffset = entry.lampOffset + entry.lampCount * sizeof(lampfile::Lamp);
-    header.nameTableOffset = entry.windowOffset + entry.windowCount * sizeof(lampfile::Window);
+    std::vector<lampfile::ObjectModel> models;
+    std::vector<lampfile::Lamp> objectLamps;
+    for (const ObjectModelRecords& object : objects)
+    {
+        models.push_back({object.displayId, static_cast<uint32_t>(objectLamps.size()),
+                          static_cast<uint32_t>(object.lamps.size()), 0});
+        objectLamps.insert(objectLamps.end(), object.lamps.begin(), object.lamps.end());
+    }
+    header.objectModelCount = static_cast<uint32_t>(models.size());
+    header.objectModelOffset = entry.windowOffset + entry.windowCount * sizeof(lampfile::Window);
+    header.objectLampOffset =
+        header.objectModelOffset + static_cast<uint32_t>(models.size() * sizeof(lampfile::ObjectModel));
+    header.nameTableOffset =
+        header.objectLampOffset + static_cast<uint32_t>(objectLamps.size() * sizeof(lampfile::Lamp));
     header.nameTableSize = sizeof(kNames);
-    LampFile file = {{}, entry.lampOffset};
+    LampFile file = {{}, entry.lampOffset, header.objectModelOffset, header.objectLampOffset};
     AppendRecords(file.bytes, &header, 1);
     AppendRecords(file.bytes, &entry, 1);
     AppendRecords(file.bytes, cells.data(), cells.size());
     AppendRecords(file.bytes, lamps.data(), lamps.size());
     AppendRecords(file.bytes, windows.data(), windows.size());
+    AppendRecords(file.bytes, models.data(), models.size());
+    AppendRecords(file.bytes, objectLamps.data(), objectLamps.size());
     AppendRecords(file.bytes, kNames, sizeof(kNames));
     return file;
 }
@@ -10391,6 +10415,268 @@ float EffectPixelArea(const EffectMeasurement& m, float depth)
 float YardsBetween(const float* a, Vec3 b)
 {
     return std::sqrt((a[0] - b.x) * (a[0] - b.x) + (a[1] - b.y) * (a[1] - b.y) + (a[2] - b.z) * (a[2] - b.z));
+}
+
+constexpr uint32_t kBonfireDisplay = 4572;
+constexpr uint32_t kTorchDisplay = 20;
+constexpr uint64_t kFireGuid = 0xF11000000000A1B2ull;
+
+lampfile::Lamp ModelLamp(Vec3 local, lampfile::LampKind kind)
+{
+    lampfile::Lamp lamp = SceneLamp({0.0f, 0.0f, 0.0f}, kind, lampfile::kLampFlame | lampfile::kLampGameObject);
+    lamp.position[0] = local.x;
+    lamp.position[1] = local.y;
+    lamp.position[2] = local.z;
+    return lamp;
+}
+
+ObjectInput SceneObject(Vec3 scenePoint, uint32_t displayId, float facing, float scale, uint64_t guid)
+{
+    const Vec3 w = Add(scenePoint, kGameLikeWorldOffset);
+    ObjectInput object = {};
+    object.position[0] = w.x;
+    object.position[1] = w.y;
+    object.position[2] = w.z;
+    object.facing = facing;
+    object.scale = scale;
+    object.displayId = displayId;
+    object.guid = guid;
+    return object;
+}
+
+void CheckObjectLampCatalog()
+{
+    const LampFile file =
+        LampFileBytes(kLampTestMap, {SceneTorch({30.0f, -3.0f, 5.0f})}, {},
+                      {{kTorchDisplay, {ModelLamp({0.0f, 0.0f, 1.0f}, lampfile::LampKind::Torch)}},
+                       {kBonfireDisplay,
+                        {ModelLamp({0.0f, 0.0f, 1.5f}, lampfile::LampKind::Bonfire),
+                         ModelLamp({1.0f, 0.0f, 1.5f}, lampfile::LampKind::Bonfire)}}});
+    LampCatalog catalog;
+    const bool loads = catalog.Parse(file.bytes.data(), file.bytes.size(), "harness");
+    ObjectModelLamps bonfire = {};
+    ObjectModelLamps missing = {};
+    const bool found = catalog.ObjectModel(kBonfireDisplay, bonfire);
+    const bool unknown = catalog.ObjectModel(kBonfireDisplay + 1, missing);
+    std::printf("     lamp data with game object models: %zu models, %zu lamps; display %u has %u lamp(s), display %u "
+                "%s\n",
+                catalog.ObjectModelTotal(), catalog.ObjectLampTotal(), kBonfireDisplay, found ? bonfire.count : 0u,
+                kBonfireDisplay + 1, unknown ? "too" : "none");
+    Check(loads && catalog.Map(kLampTestMap) && catalog.Map(kLampTestMap)->lamps.size() == 1 &&
+              catalog.ObjectModelTotal() == 2 && catalog.ObjectLampTotal() == 3 && found && bonfire.count == 2 &&
+              bonfire.lamps[1].position[0] == 1.0f && bonfire.beams[1] == 0 && !unknown,
+          "lamp data: the game object models load by display id, each with its lamps in the model's own space");
+
+    std::vector<char> older = file.bytes;
+    lampfile::Header header = {};
+    std::memcpy(&header, older.data(), sizeof(header));
+    header.version = lampfile::kVersionOne;
+    std::memcpy(older.data(), &header, sizeof(header));
+    LampCatalog old;
+    ObjectModelLamps oldBonfire = {};
+    const bool oldLoads = old.Parse(older.data(), older.size(), "harness (version 1)");
+    Check(oldLoads && old.LampTotal() == 1 && old.ObjectModelTotal() == 0 &&
+              !old.ObjectModel(kBonfireDisplay, oldBonfire),
+          "lamp data: a file from the older setup still loads, with its placed lamps and no game object models");
+
+    auto rejects = [&](std::vector<char> bytes) {
+        LampCatalog c;
+        return !c.Parse(bytes.data(), bytes.size(), "harness (corrupt)") && !c.Loaded();
+    };
+    auto withModel = [&](size_t index, uint32_t displayId, uint32_t lampCount) {
+        std::vector<char> bytes = file.bytes;
+        const size_t at = file.objectModelOffset + index * sizeof(lampfile::ObjectModel);
+        lampfile::ObjectModel model = {};
+        std::memcpy(&model, bytes.data() + at, sizeof(model));
+        model.displayId = displayId;
+        model.lampCount = lampCount;
+        std::memcpy(bytes.data() + at, &model, sizeof(model));
+        return bytes;
+    };
+    std::vector<char> nanLamp = file.bytes;
+    lampfile::Lamp nan = {};
+    std::memcpy(&nan, nanLamp.data() + file.objectLampOffset, sizeof(nan));
+    nan.position[2] = std::nanf("");
+    std::memcpy(nanLamp.data() + file.objectLampOffset, &nan, sizeof(nan));
+    Check(rejects(withModel(1, kTorchDisplay, 2)) && rejects(withModel(0, kTorchDisplay, 0)) &&
+              rejects(withModel(1, kBonfireDisplay, 1000)) && rejects(nanLamp),
+          "lamp data: game object models out of order, without lamps or reaching past the end of the file, and a "
+          "NaN lamp among them, are rejected");
+}
+
+void CheckObjectLamps()
+{
+    const Vec3 placedTorch = {30.0f, -3.0f, 5.0f};
+    const LampFile file =
+        LampFileBytes(kLampTestMap, {SceneTorch(placedTorch)}, {},
+                      {{kTorchDisplay, {ModelLamp({0.0f, 0.0f, 0.0f}, lampfile::LampKind::Torch)}},
+                       {kBonfireDisplay, {ModelLamp({1.0f, 0.0f, 2.0f}, lampfile::LampKind::Bonfire)}}});
+    LampCatalog catalog;
+    catalog.Parse(file.bytes.data(), file.bytes.size(), "harness");
+    const D3DVIEWPORT9 vp = {0, 0, 1280, 688, 0.0f, 1.0f};
+    float view[16];
+    float proj[16];
+    FrameInputs in = LampTestInputs(view, proj, vp);
+    const Vec3 fire = {20.0f, 4.0f, 0.0f};
+    in.objects[0] = SceneObject(fire, kBonfireDisplay, 0.5f * kPi, 2.0f, kFireGuid);
+    in.objects[1] = SceneObject({25.0f, 0.0f, 0.0f}, kBonfireDisplay + 1, 0.0f, 1.0f, 0xF110000000000002ull);
+    in.objects[2] = SceneObject(placedTorch, kTorchDisplay, 0.0f, 1.0f, 0xF110000000000003ull);
+    in.objects[3] = SceneObject(fire, kBonfireDisplay, 0.5f * kPi, 2.0f, 0xF110000000000004ull);
+    in.objectCount = 4;
+    ObjectLamps lamps;
+    const std::vector<ObjectLamp> lit = lamps.Update(catalog, in, true);
+    const Vec3 expected = Add({20.0f, 6.0f, 4.0f}, kGameLikeWorldOffset);
+    const float off = lit.size() == 1 ? YardsBetween(lit[0].lamp.position, expected) : 1e9f;
+    std::printf("     game object lamps: %d of 4 objects with a lamp's model, %zu lamp(s), %d left out; the bonfire's "
+                "lamp %.4f yd from where its model, turned a quarter and doubled, puts it\n",
+                lamps.Objects(), lit.size(), lamps.Duplicates(), off);
+    Check(lamps.Objects() == 3 && lit.size() == 1 && lamps.Duplicates() == 2 && off < 0.01f &&
+              lit[0].lamp.kind == static_cast<uint8_t>(lampfile::LampKind::Bonfire) &&
+              lit[0].id == ObjectLampId(kFireGuid, 0) && lit[0].size == 2.0f,
+          "game object lamps: a lamp model's lights stand where the object stands, turned by its facing and scaled by "
+          "its size; an unknown display, a second object in the same place and an object at a placed lamp add none");
+
+    FrameInputs reordered = in;
+    std::swap(reordered.objects[0], reordered.objects[1]);
+    const std::vector<ObjectLamp> relit = lamps.Update(catalog, reordered, true);
+    const size_t switchedOff = lamps.Update(catalog, in, false).size();
+    Check(lit.size() == 1 && relit.size() == 1 && relit[0].id == lit[0].id && switchedOff == 0,
+          "game object lamps: a lamp keeps its id when the client lists the objects in another order, and "
+          "ObjectLamps=0 gives none");
+}
+
+void CheckObjectLampSelection()
+{
+    const LampFile file = LampFileBytes(
+        kLampTestMap, {}, {}, {{kBonfireDisplay, {ModelLamp({0.0f, 0.0f, 1.5f}, lampfile::LampKind::Bonfire)}}});
+    LampCatalog catalog;
+    catalog.Parse(file.bytes.data(), file.bytes.size(), "harness");
+    const D3DVIEWPORT9 vp = {0, 0, 1280, 688, 0.0f, 1.0f};
+    float view[16];
+    float proj[16];
+    Config cfg;
+    cfg.lampFlicker = 0.0f;
+    constexpr float kHaze = 0.8f;
+    constexpr float kLight = 1.0f;
+    const Vec3 relative = {25.0f, 2.0f, 1.5f - 9.0f};
+    const uint32_t id = ObjectLampId(kFireGuid, 0);
+    struct Run
+    {
+        ObjectLamps objects;
+        LampSelection selection;
+        FrameInputs in;
+    };
+    auto start = [&](int mapId) {
+        auto run = std::make_unique<Run>();
+        run->in = LampTestInputs(view, proj, vp);
+        run->in.mapId = mapId;
+        run->in.objects[0] = SceneObject({25.0f, 2.0f, 0.0f}, kBonfireDisplay, 0.0f, 1.0f, kFireGuid);
+        run->in.objectCount = 1;
+        return run;
+    };
+    auto update = [&](Run& run, double step) -> const LampTable& {
+        run.in.seconds += step;
+        const std::vector<ObjectLamp>& placed = run.objects.Update(catalog, run.in, true);
+        return run.selection.Update(catalog, run.in, cfg, kHaze, kLight, 0.0f, 1.0f, nullptr, 0.0f, nullptr, 0.0f,
+                                    0.0f, &placed);
+    };
+    auto slotOf = [&](const LampTable& table) {
+        for (int k = 0; k < table.slots; ++k)
+            if (std::fabs(table.texels[kLampSphereRow][k][0] - relative.x) < 0.01f &&
+                std::fabs(table.texels[kLampSphereRow][k][1] - relative.y) < 0.01f &&
+                std::fabs(table.texels[kLampSphereRow][k][2] - relative.z) < 0.01f)
+                return k;
+        return -1;
+    };
+
+    std::unique_ptr<Run> elsewhere = start(kLampTestMap + 1);
+    update(*elsewhere, 0.0);
+    const int elsewhereSlot = slotOf(update(*elsewhere, 0.1));
+    const float elsewhereFade = elsewhere->selection.ObjectSlotFade(id);
+
+    std::unique_ptr<Run> town = start(kLampTestMap);
+    update(*town, 0.0);
+    update(*town, 0.1);
+    const LampTable& lit = update(*town, 0.1);
+    const int litSlot = slotOf(lit);
+    const float litRed = litSlot >= 0 ? lit.texels[kLampSurfaceRow][litSlot][0] : 0.0f;
+    const float litFade = town->selection.ObjectSlotFade(id);
+    const int drawn = town->selection.Stats().drawn;
+    town->in.objectCount = 0;
+    const LampTable& fading = update(*town, 0.1);
+    const int fadingSlot = slotOf(fading);
+    const float fadingRed = fadingSlot >= 0 ? fading.texels[kLampSurfaceRow][fadingSlot][0] : 0.0f;
+    const float fadingFade = town->selection.ObjectSlotFade(id);
+    update(*town, 0.2);
+    const float goneFade = town->selection.ObjectSlotFade(id);
+    std::printf("     a campfire the client shows: on a map without lamp data slot %d, fade %.2f; on a map without "
+                "placed lamps slot %d, fade %.2f, light %.3f, %d drawn; once gone: slot %d, fade %.2f, light %.3f; "
+                "0.2 s later fade %.2f\n",
+                elsewhereSlot, elsewhereFade, litSlot, litFade, litRed, drawn, fadingSlot, fadingFade, fadingRed,
+                goneFade);
+    Check(elsewhereSlot >= 0 && Near(elsewhereFade, 0.25f) && litSlot >= 0 && Near(litFade, 0.5f) && litRed > 0.0f &&
+              drawn == 1,
+          "game object lamps: a campfire the client shows is lit as a lamp and fades in like the others, even where "
+          "the world has no lamps of its own");
+    Check(fadingSlot == litSlot && Near(fadingFade, 0.25f) && std::fabs(fadingRed - 0.5f * litRed) < 1e-4f * litRed &&
+              goneFade == 0.0f,
+          "game object lamps: when the object goes, its lamp fades out where it stood, then frees its slot");
+}
+
+void CheckEffectsAtObjectLamps()
+{
+    const D3DVIEWPORT9 vp = {0, 0, 1280, 688, 0.0f, 1.0f};
+    float view[16];
+    float proj[16];
+    const FrameInputs in = LampTestInputs(view, proj, vp);
+    const Vec3 eye = {in.camPos[0], in.camPos[1], in.camPos[2]};
+    const float flames[3] = {1.0f, 0.6f, 0.25f};
+    constexpr float kPixels = 300.0f;
+    constexpr float kEnergy = 0.4f;
+    constexpr float kWallBehindYards = 12.0f;
+    const Vec3 flame = {30.0f, -3.0f, 1.2f};
+    ObjectLamp campfire = {};
+    campfire.id = ObjectLampId(kFireGuid, 0);
+    campfire.lamp = SceneLamp(flame, lampfile::LampKind::Bonfire, lampfile::kLampFlame | lampfile::kLampGameObject);
+    const std::vector<ObjectLamp> objects = {campfire};
+    EffectMeasurement onWall = EffectTestMeasurement(view, proj, eye, vp);
+    const EffectPixel flamePixel = EffectPixelOf(onWall, flame);
+    AddEffectPixels(onWall, {flamePixel.x, flamePixel.y, flamePixel.depth + kWallBehindYards}, flames, kPixels,
+                    kEnergy);
+    EffectClusterStats stats = {};
+    const size_t withLamp = ClusterEffects(onWall, nullptr, &stats, &objects).size();
+    const std::vector<EffectCluster> alone = ClusterEffects(onWall, nullptr);
+    const float fromFire = alone.size() == 1 ? YardsBetween(alone[0].position, Add(flame, kGameLikeWorldOffset)) : 0.0f;
+    std::printf("     a campfire's flames seen against a wall %.0f yd behind it: %d light(s) with its game object lamp "
+                "(%d cells left to the lamp); without it %d light(s), %.1f yd from the fire\n",
+                kWallBehindYards, static_cast<int>(withLamp), stats.suppressedCells, static_cast<int>(alone.size()),
+                fromFire);
+    Check(withLamp == 0 && stats.suppressedCells == 1 && alone.size() == 1 && fromFire > 0.5f * kWallBehindYards,
+          "effect light: flames at a game object's lamp are left to the lamp, instead of lighting the wall seen "
+          "behind them");
+
+    constexpr float kServerSize = 2.21f;
+    constexpr float kTipAboveLampYards = 3.5f;
+    const Vec3 tip = {flame.x, flame.y, flame.z + kTipAboveLampYards};
+    EffectMeasurement tipOnWall = EffectTestMeasurement(view, proj, eye, vp);
+    const EffectPixel tipPixel = EffectPixelOf(tipOnWall, tip);
+    AddEffectPixels(tipOnWall, {tipPixel.x, tipPixel.y, tipPixel.depth + kWallBehindYards}, flames, kPixels, kEnergy);
+    ObjectLamp large = campfire;
+    large.size = kServerSize;
+    const std::vector<ObjectLamp> largeFire = {large};
+    ObjectLamp modelSized = campfire;
+    modelSized.size = 1.0f;
+    const std::vector<ObjectLamp> modelFire = {modelSized};
+    EffectClusterStats largeStats = {};
+    const size_t largeLights = ClusterEffects(tipOnWall, nullptr, &largeStats, &largeFire).size();
+    const size_t modelLights = ClusterEffects(tipOnWall, nullptr, nullptr, &modelFire).size();
+    std::printf("     the tip of a fire's flames %.1f yd above its lamp, seen against the wall: %d light(s) when the "
+                "server makes the fire %.2f times its model (%d cells left to the lamp, %d to its glow), %d at the "
+                "model's size\n",
+                kTipAboveLampYards, static_cast<int>(largeLights), kServerSize, largeStats.suppressedCells,
+                largeStats.lampGlowCells, static_cast<int>(modelLights));
+    Check(largeLights == 0 && largeStats.suppressedCells + largeStats.lampGlowCells == 1 && modelLights == 1,
+          "effect light: the flames of a fire the server makes larger are left to its lamp over their whole size");
 }
 
 void CheckEffectClusters()
@@ -28438,6 +28724,30 @@ void CheckSunAndMoonOverTheSky(FogView& base, const Config& cfg, const std::wstr
     v.h.dev->Present(nullptr, nullptr, nullptr, nullptr);
 }
 
+void CheckObjectLampKey(const std::wstring& outDir, const std::wstring& shippedIni)
+{
+    const std::wstring ini = FullPath(outDir + L"\\object-lamps.ini");
+    const char text[] = "[CoAVolFog]\r\nObjectLamps=0\r\n";
+    HANDLE file = CreateFileW(ini.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    DWORD written = 0;
+    const bool saved = file != INVALID_HANDLE_VALUE &&
+                       WriteFile(file, text, static_cast<DWORD>(sizeof(text) - 1), &written, nullptr) != FALSE;
+    if (file != INVALID_HANDLE_VALUE)
+        CloseHandle(file);
+    ConfigStore off;
+    off.Load(NarrowPath(ini));
+    ConfigStore shipped;
+    shipped.Load(NarrowPath(shippedIni));
+    const Config builtIn = {};
+    std::printf("     ObjectLamps=0 in an INI reads as %d; %d in the shipped INI, %d built in\n",
+                off.Get().objectLamps ? 1 : 0, shipped.Get().objectLamps ? 1 : 0, builtIn.objectLamps ? 1 : 0);
+    Check(saved && !off.Get().objectLamps && shipped.Get().objectLamps && builtIn.objectLamps,
+          "game object lamps: ObjectLamps=0 in the INI is read, and they are on in the shipped INI and built in");
+    const int key = FindLiveSetting("ObjectLamps");
+    Check(key >= 0 && LiveSettingAt(key).kind == SettingKind::Bool && !LiveSettingAt(key).regional,
+          "game object lamps: a setting of its own, not one a region changes");
+}
+
 void CheckSkyboxMoonKey(const std::wstring& outDir, const std::wstring& shippedIni)
 {
     const std::wstring ini = FullPath(outDir + L"\\skybox-moons.ini");
@@ -33063,11 +33373,15 @@ int Run(const std::wstring& outDir, const std::string& dataPath, const std::wstr
     CheckFarLampHalos();
     CheckFarLightCores();
     CheckWindowSelection();
+    CheckObjectLampCatalog();
+    CheckObjectLamps();
+    CheckObjectLampSelection();
     CheckLampHaze();
     CheckBeltLanternModel();
     CheckLanternSlot();
     CheckCarrierBody();
     CheckEffectClusters();
+    CheckEffectsAtObjectLamps();
     CheckEffectLightAtThePlayer();
     CheckEffectLightAtUnits();
     CheckCorpseLights();
@@ -33115,6 +33429,7 @@ int Run(const std::wstring& outDir, const std::string& dataPath, const std::wstr
     CheckReliefShareKeys(outDir, FullPath(iniPath));
     CheckReliefFile(outDir);
     CheckSkyboxMoonKey(outDir, FullPath(iniPath));
+    CheckObjectLampKey(outDir, FullPath(iniPath));
     CheckBankKeys(outDir, FullPath(iniPath));
     CheckZoneDensityAndCeilingKeys(outDir, FullPath(iniPath));
     CheckSkyboxMoonList();

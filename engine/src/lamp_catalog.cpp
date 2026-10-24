@@ -2,6 +2,7 @@
 
 #include "log.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -119,7 +120,7 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
     {
         std::memcpy(&header, bytes, sizeof(header));
         ok = std::memcmp(header.magic, lampfile::kMagic, sizeof(header.magic)) == 0 &&
-             header.version == lampfile::kVersion &&
+             (header.version == lampfile::kVersion || header.version == lampfile::kVersionOne) &&
              FitsIn(sizeof(header), header.mapCount, sizeof(lampfile::MapEntry), size) &&
              FitsIn(header.nameTableOffset, header.nameTableSize, 1, size);
     }
@@ -147,6 +148,28 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
         ok = ok && ValidCells(map);
         maps.push_back(std::move(map));
     }
+    const uint32_t objectModelCount = header.version == lampfile::kVersionOne ? 0 : header.objectModelCount;
+    std::vector<lampfile::ObjectModel> objectModels;
+    std::vector<lampfile::Lamp> objectLamps;
+    if (ok && objectModelCount > 0)
+    {
+        ok = FitsIn(header.objectModelOffset, objectModelCount, sizeof(lampfile::ObjectModel), size);
+        if (ok)
+            objectModels = Records<lampfile::ObjectModel>(bytes, header.objectModelOffset, objectModelCount);
+        uint64_t lampTotal = 0;
+        for (size_t i = 0; ok && i < objectModels.size(); ++i)
+        {
+            const lampfile::ObjectModel& model = objectModels[i];
+            ok = model.lampCount > 0 && model.firstLamp == lampTotal &&
+                 (i == 0 || model.displayId > objectModels[i - 1].displayId);
+            lampTotal += model.lampCount;
+        }
+        ok = ok && FitsIn(header.objectLampOffset, lampTotal, sizeof(lampfile::Lamp), size);
+        if (ok)
+            objectLamps = Records<lampfile::Lamp>(bytes, header.objectLampOffset, static_cast<uint32_t>(lampTotal));
+        for (const lampfile::Lamp& lamp : objectLamps)
+            ok = ok && ValidLamp(lamp, header.nameTableSize);
+    }
     ok = ok && (header.nameTableSize == 0 || bytes[header.nameTableOffset + header.nameTableSize - 1] == '\0');
     if (!ok)
     {
@@ -154,6 +177,8 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
         return false;
     }
     m_maps = std::move(maps);
+    m_objectModels = std::move(objectModels);
+    m_objectLamps = std::move(objectLamps);
     m_names.assign(bytes + header.nameTableOffset, bytes + header.nameTableOffset + header.nameTableSize);
     size_t beams = 0;
     for (LampMap& map : m_maps)
@@ -166,8 +191,18 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
                 ++beams;
             }
     }
+    m_objectBeams.assign(m_objectLamps.size(), 0);
+    for (size_t i = 0; i < m_objectLamps.size(); ++i)
+        m_objectBeams[i] = BeamLampName(Name(m_objectLamps[i].name)) ? 1 : 0;
     VF_LOG_INFO("lamp data: %u maps, %zu lamps, %zu windows from %s", header.mapCount, LampTotal(), WindowTotal(),
                 source);
+    if (header.version == lampfile::kVersionOne)
+        VF_LOG_INFO("lamp data: made by an older Lumenveil-Setup.cmd, without the game objects' lamps; run it again "
+                    "so the campfires, braziers and candles the server places light the world too");
+    else
+        VF_LOG_INFO("lamp data: %zu game object models with %zu lamps (campfires, braziers and candles the server "
+                    "places, lit where the client shows them)",
+                    m_objectModels.size(), m_objectLamps.size());
     VF_LOG_INFO("lamp data: %zu spotlights, searchlights and lighthouses, whose beams give no spell light", beams);
     return true;
 }
@@ -175,6 +210,9 @@ bool LampCatalog::Parse(const void* data, size_t size, const char* source)
 void LampCatalog::Clear()
 {
     m_maps.clear();
+    m_objectModels.clear();
+    m_objectLamps.clear();
+    m_objectBeams.clear();
     m_names.clear();
     ++m_version;
 }
@@ -185,6 +223,17 @@ const LampMap* LampCatalog::Map(int mapId) const
         if (map.mapId == mapId)
             return &map;
     return nullptr;
+}
+
+bool LampCatalog::ObjectModel(uint32_t displayId, ObjectModelLamps& out) const
+{
+    const auto found = std::lower_bound(
+        m_objectModels.begin(), m_objectModels.end(), displayId,
+        [](const lampfile::ObjectModel& model, uint32_t id) { return model.displayId < id; });
+    if (found == m_objectModels.end() || found->displayId != displayId)
+        return false;
+    out = {m_objectLamps.data() + found->firstLamp, m_objectBeams.data() + found->firstLamp, found->lampCount};
+    return true;
 }
 
 const char* LampCatalog::Name(uint32_t offset) const

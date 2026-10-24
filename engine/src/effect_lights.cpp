@@ -105,7 +105,7 @@ struct ProjectedLamp
     float depth;
 };
 
-bool ProjectLamp(const EffectFrame& f, const lampfile::Lamp& lamp, ProjectedLamp& out)
+bool ProjectLamp(const EffectFrame& f, const lampfile::Lamp& lamp, float size, ProjectedLamp& out)
 {
     const float relative[3] = {lamp.position[0] - f.camPos[0], lamp.position[1] - f.camPos[1],
                                lamp.position[2] - f.camPos[2]};
@@ -116,7 +116,7 @@ bool ProjectLamp(const EffectFrame& f, const lampfile::Lamp& lamp, ProjectedLamp
     const float* p = f.glProjection;
     const float ndcX = view[0] / view[2] * p[0] + p[8];
     const float ndcY = view[1] / view[2] * p[5] + p[9];
-    const float flame = kEffectLampFlameYards + kEffectLampFlamePerReach * lamp.reach;
+    const float flame = (kEffectLampFlameYards + kEffectLampFlamePerReach * lamp.reach) * size;
     out.u = ndcX * 0.5f + 0.5f;
     out.v = 0.5f - ndcY * 0.5f;
     out.radiusU = flame * p[0] * 0.5f / view[2];
@@ -125,17 +125,16 @@ bool ProjectLamp(const EffectFrame& f, const lampfile::Lamp& lamp, ProjectedLamp
     return true;
 }
 
-void SuppressLampFlames(const EffectMeasurement& m, const LampMap& lamps, std::vector<Cell>& cells, int& flames,
-                        int& glows)
+void SuppressLampFlames(const EffectMeasurement& m, const LampMap* lamps, const std::vector<ObjectLamp>* objects,
+                        std::vector<Cell>& cells, int& flames, int& glows)
 {
     const EffectFrame& f = m.frame;
     const float search = kEffectFarthestYards + kMaxEffectReach;
-    ForEachLampNear(lamps, f.camPos[0], f.camPos[1], search, [&](uint32_t index, const lampfile::Lamp& lamp) {
+    const auto suppress = [&](const lampfile::Lamp& lamp, bool beam, float size) {
         ProjectedLamp p;
-        if (!ProjectLamp(f, lamp, p) || p.depth > search)
+        if (!ProjectLamp(f, lamp, size, p) || p.depth > search)
             return;
-        const bool beam = index < lamps.beams.size() && lamps.beams[index] != 0;
-        const float glowYards = beam ? kEffectBeamGlowYards : kEffectLampGlowYards;
+        const float glowYards = beam ? kEffectBeamGlowYards : kEffectLampGlowYards * size;
         const float glowU = std::max(p.radiusU, glowYards * f.glProjection[0] * 0.5f / p.depth);
         const float glowV = std::max(p.radiusV, glowYards * f.glProjection[5] * 0.5f / p.depth);
         const float cellsPerU = f.viewportWidth / kEffectCellPixels;
@@ -144,8 +143,8 @@ void SuppressLampFlames(const EffectMeasurement& m, const LampMap& lamps, std::v
         const int x1 = std::min(m.columns - 1, static_cast<int>(std::floor((p.u + glowU) * cellsPerU)));
         const int y0 = std::max(0, static_cast<int>(std::floor((p.v - glowV) * cellsPerV)));
         const int y1 = std::min(m.rows - 1, static_cast<int>(std::floor((p.v + glowV) * cellsPerV)));
-        const float nearest = p.depth - std::max(kEffectLampDepthYards, kEffectLampDepthShare * p.depth);
-        const float behind = beam ? p.depth - kEffectBeamGlowYards : p.depth + kEffectLampGlowBehindYards;
+        const float nearest = p.depth - std::max(kEffectLampDepthYards * size, kEffectLampDepthShare * p.depth);
+        const float behind = beam ? p.depth - kEffectBeamGlowYards : p.depth + kEffectLampGlowBehindYards * size;
         for (int y = y0; y <= y1; ++y)
             for (int x = x0; x <= x1; ++x)
             {
@@ -167,7 +166,14 @@ void SuppressLampFlames(const EffectMeasurement& m, const LampMap& lamps, std::v
                     ++glows;
                 }
             }
-    });
+    };
+    if (lamps)
+        ForEachLampNear(*lamps, f.camPos[0], f.camPos[1], search, [&](uint32_t index, const lampfile::Lamp& lamp) {
+            suppress(lamp, index < lamps->beams.size() && lamps->beams[index] != 0, 1.0f);
+        });
+    if (objects)
+        for (const ObjectLamp& object : *objects)
+            suppress(object.lamp, object.beam, std::max(object.size, 1.0f));
 }
 
 int SuppressTargetRing(const EffectMeasurement& m, std::vector<Cell>& cells)
@@ -478,7 +484,8 @@ float EffectSurfaceReach(float intensity)
     return std::min(2.0f * reach, 2.0f * kMaxEffectReach);
 }
 
-std::vector<EffectCluster> ClusterEffects(const EffectMeasurement& m, const LampMap* lamps, EffectClusterStats* stats)
+std::vector<EffectCluster> ClusterEffects(const EffectMeasurement& m, const LampMap* lamps, EffectClusterStats* stats,
+                                          const std::vector<ObjectLamp>* objects)
 {
     std::vector<EffectCluster> lights;
     EffectClusterStats local = {};
@@ -543,8 +550,8 @@ std::vector<EffectCluster> ClusterEffects(const EffectMeasurement& m, const Lamp
             ++local.cells;
         }
     local.ringCells = SuppressTargetRing(m, cells);
-    if (lamps)
-        SuppressLampFlames(m, *lamps, cells, local.suppressedCells, local.lampGlowCells);
+    if (lamps || objects)
+        SuppressLampFlames(m, lamps, objects, cells, local.suppressedCells, local.lampGlowCells);
     for (size_t i = 0; i < cells.size(); ++i)
         if (cells[i].open)
             order.push_back(i);

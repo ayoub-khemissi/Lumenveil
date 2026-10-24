@@ -5,6 +5,7 @@
 #include "effect_lights.h"
 #include "engine.h"
 #include "lamp_catalog.h"
+#include "object_lamps.h"
 
 #include <cstdint>
 #include <vector>
@@ -118,7 +119,7 @@ public:
                             float light, float windowLight = 0.0f, float lanternGlow = 1.0f,
                             const LanternLamp* lantern = nullptr, float lanternLight = 0.0f,
                             const std::vector<EffectLamp>* effects = nullptr, float effectLight = 0.0f,
-                            float farCore = 0.0f);
+                            float farCore = 0.0f, const std::vector<ObjectLamp>* objects = nullptr);
     void ForgetVisibility();
     float VisibilityBlend() const { return m_visibilityBlend; }
     const LampStats& Stats() const { return m_stats; }
@@ -126,6 +127,7 @@ public:
     float WindowSlotFade(uint32_t window) const { return SlotFade(window | kWindowBit); }
     float FarSlotFade(uint32_t lamp) const { return SlotFade(lamp | kHaloOnlyBit); }
     float LanternSlotFade() const { return SlotFade(kLanternSlotId); }
+    float ObjectSlotFade(uint32_t id) const { return SlotFade(kObjectBit | (id & kObjectLampIdMask)); }
     int EffectSlot(uint32_t effect) const;
 
 private:
@@ -136,12 +138,20 @@ private:
     static constexpr uint32_t kEffectBit = 0x10000000u;
     static constexpr uint32_t kSlotKindMask = 0xF0000000u;
     static constexpr uint32_t kEffectIdMask = 0x0FFFFFFFu;
+    static constexpr uint32_t kObjectBit = 0x08000000u;
+
+    static bool ObjectSlot(uint32_t lamp)
+    {
+        const uint32_t kind = lamp & kSlotKindMask;
+        return (kind == 0 || kind == kHaloOnlyBit) && (lamp & kObjectBit) != 0;
+    }
 
     struct Slot
     {
         uint32_t lamp = kNoLamp;
         float fade = 0.0f;
         bool fresh = true;
+        lampfile::Lamp object = {};
     };
 
     struct Candidate
@@ -149,6 +159,7 @@ private:
         float importance;
         float distanceSquared;
         uint32_t lamp;
+        const lampfile::Lamp* record = nullptr;
     };
 
     void Reset();
@@ -162,7 +173,8 @@ private:
                          float windowLight, float haze);
     void WriteEffectSlot(int slot, const EffectLamp* effect, const FrameInputs& in, const Config& cfg,
                          float effectLight);
-    size_t PickLamps(const LampMap& map, const FrameInputs& in, size_t wanted, size_t wantedFar, bool lanterns);
+    size_t PickLamps(const LampMap* map, const std::vector<ObjectLamp>* objects, const FrameInputs& in, size_t wanted,
+                     size_t wantedFar, bool lanterns);
     size_t PickWindows(const LampMap& map, const FrameInputs& in, size_t wanted);
 
     Slot m_slots[kLampSlots];
