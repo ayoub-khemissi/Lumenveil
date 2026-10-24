@@ -24,6 +24,10 @@
 5. Start the game the way you always do. Press **Ctrl+F12** to see the game with and without Lumenveil, and
    **Ctrl+F7** to open the settings.
 
+On Lordaeron, steps 4 and 5 are one: start the game with `Lordaeron-Play.cmd`. When `lampdata.bin` or
+`liquiddata.bin` is missing it runs the setup first, and every time it brings Lumenveil and the client patches up to
+date before it starts the game (see [Updating](#updating)).
+
 Run `Lumenveil-Setup.cmd` again only after you install a game patch or a texture pack that changes the world's
 models. Without `lampdata.bin` the game still runs with the fog, but placed lamps give no light; without
 `liquiddata.bin` the fog takes all ground for land.

@@ -14,7 +14,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$UpdaterVersion = 1
+$UpdaterVersion = 2
 $Utf8 = New-Object System.Text.UTF8Encoding $false
 
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
@@ -71,8 +71,8 @@ $Texts = @{
         WaitGame = 'Le jeu est ouvert dans ce dossier : fermez-le pour terminer la mise à jour. En attente...'
         Damaged = 'Le téléchargement de {0} est endommagé (son SHA-256 ne correspond pas) : {0} n''a pas été modifié. Réessayez plus tard.'
         SettingsKept = 'Vos réglages Lumenveil sont conservés ; ceux que vous n''avez jamais changés prennent les nouvelles valeurs par défaut.'
-        Setup = 'Installation de Lumenveil : les lampes et l''eau de vos fichiers de jeu, jusqu''à une demi-minute...'
-        SetupFailed = 'L''installation de Lumenveil a échoué : les détails sont dans Lumenveil\setup.log.'
+        Setup = 'Préparation de Lumenveil : les lampes et l''eau de vos fichiers de jeu, jusqu''à une demi-minute...'
+        SetupFailed = 'La préparation de Lumenveil a échoué : les détails sont dans Lumenveil\setup.log.'
         WhatsNew = 'Nouveautés de Lumenveil {0} :'
         Credits = 'Lumenveil est un logiciel libre (GNU GPL v2) des auteurs de Lumenveil, github.com/lumenveil/Lumenveil, basé sur CoAVolFog. La version de Lordaeron et ses sources : github.com/ayoub-khemissi/Lumenveil.'
         RolledBack = 'Lumenveil est revenu à la version {0} ; la {1} est ignorée jusqu''à une version plus récente.'
@@ -361,8 +361,14 @@ function Get-InstalledLumenveil {
     return [Version]'0.0.0'
 }
 
+function Test-SetupMissing {
+    return -not (Test-Path -LiteralPath (Join-Path $Root 'lampdata.bin')) -or
+        -not (Test-Path -LiteralPath (Join-Path $Root 'liquiddata.bin'))
+}
+
 function Invoke-Setup {
     $setup = Join-Path $Root 'Lumenveil-Setup.cmd'
+    $script:SetupRan = $true
     if (-not $env:ComSpec -or -not (Test-Path -LiteralPath $setup)) { return }
     Say (Text 'Setup')
     $process = Start-Process -FilePath $env:ComSpec -ArgumentList @('/c', "`"$setup`" /auto") -WorkingDirectory $Root `
@@ -534,6 +540,7 @@ function Restore-Lumenveil {
 }
 
 $failed = $false
+$script:SetupRan = $false
 try {
     $Host.UI.RawUI.WindowTitle = Text 'Title'
 } catch { }
@@ -582,6 +589,14 @@ try {
 } catch {
     $failed = $true
     Say (Text 'Failed' $_.Exception.Message) 'Red'
+}
+if (-not $Rollback -and -not $script:SetupRan) {
+    try {
+        if ((Get-InstalledLumenveil) -and (Test-SetupMissing)) { Invoke-Setup }
+    } catch {
+        $failed = $true
+        Say (Text 'Failed' $_.Exception.Message) 'Red'
+    }
 }
 if ($Play) {
     if ($failed) { Start-Sleep -Seconds 4 }

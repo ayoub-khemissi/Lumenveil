@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (2026-10-25)
+
+- `Lordaeron-Play.cmd` and `Lordaeron-Update.cmd` run the setup by themselves when `lampdata.bin` or `liquiddata.bin`
+  is missing, even when lordaeron.eu can't be reached. A first install is now: copy the zip's files next to `Wow.exe`
+  and start the game with `Lordaeron-Play.cmd`.
+
 ## 0.6.0 (2026-10-25)
 
 - Lordaeron's updater: double-click `Lordaeron-Update.cmd` in the game folder, or start the game with
