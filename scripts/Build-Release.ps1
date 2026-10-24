@@ -83,6 +83,9 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force (Join-Path $stage 'Lumenveil\licenses') | Out-Null
 Copy-Item (Join-Path $bin 'version.dll'), (Join-Path $bin 'CoAVolFog.dll') $stage
 Copy-Item (Join-Path $Root 'package\*') $stage -Exclude 'README.txt'
+New-Item -ItemType Directory -Force (Join-Path $stage 'Lordaeron'), (Join-Path $stage 'Lumenveil\defaults') | Out-Null
+Copy-Item (Join-Path $Root 'package\Lordaeron\*') (Join-Path $stage 'Lordaeron')
+Copy-Item (Join-Path $Root 'package\CoAVolFog.ini'), (Join-Path $Root 'package\CoAVolFog-regions.ini') (Join-Path $stage 'Lumenveil\defaults')
 Copy-Item (Join-Path $toolBuild 'Release\lamp_extract.exe') (Join-Path $stage 'Lumenveil')
 Copy-Item (Join-Path $Root 'package\README.txt') (Join-Path $stage 'Lumenveil\README.txt')
 Copy-Item (Join-Path $Root 'LICENSE') (Join-Path $stage 'Lumenveil\LICENSE.txt')

@@ -4,8 +4,14 @@ INSTALL
   1. Close the game.
   2. Copy everything from the zip into your game folder, next to Wow.exe.
   3. Double-click Lumenveil-Setup.cmd once. It reads your own game files and writes where the world's lamps and
-     water are (lampdata.bin, liquiddata.bin). One to five minutes; nothing is changed or sent anywhere.
+     water are (lampdata.bin, liquiddata.bin). About half a minute; nothing is changed or sent anywhere.
   4. Start the game as usual.
+
+UPDATE
+  Double-click Lordaeron-Update.cmd, or start the game with Lordaeron-Play.cmd (it updates, then starts the game).
+  It keeps Lumenveil and the client patches in Data (patch-W.MPQ, patch-Z.MPQ) up to date from lordaeron.eu, checks
+  every download, keeps the settings you changed and gives the others their new defaults. Lordaeron-Update.cmd
+  -Rollback goes back to the version you had.
 
 KEYS
   Ctrl+F12  switches Lumenveil off and on, to compare with the plain game
@@ -24,6 +30,12 @@ ANTIVIRUS
   check the files, compare them with SHA256SUMS.txt on the release page, or run
   "gh attestation verify <file> --repo ayoub-khemissi/Lumenveil" with the GitHub CLI: it shows that GitHub built
   the file from the project's source. Report a false positive to your antivirus vendor; don't turn your antivirus off.
+
+CREDITS
+  Lumenveil is made by the Lumenveil authors: https://github.com/lumenveil/Lumenveil. It is built on CoAVolFog by
+  jealous-sound (https://github.com/jealous-sound/coa-vfog), with lamp rules from Everwood, Dear ImGui, libmpq, zlib
+  and bzip2 (THIRD-PARTY-NOTICES.txt). This build is Lordaeron's fork; its source and its changes:
+  https://github.com/ayoub-khemissi/Lumenveil.
 
 LEGAL
   Lumenveil is free, non-commercial software under the GNU General Public License v2 (LICENSE.txt). It contains no

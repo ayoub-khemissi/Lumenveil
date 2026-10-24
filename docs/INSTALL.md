@@ -20,7 +20,7 @@
    - `lampdata.bin`: where the lamps, torches, braziers, candles and lit windows of the world stand, and their colour;
    - `liquiddata.bin`: where the lakes and the sea are, for the fog that lies over water.
 
-   This takes one to five minutes. Nothing in your game files changes, and nothing is sent anywhere.
+   This takes about half a minute. Nothing in your game files changes, and nothing is sent anywhere.
 5. Start the game the way you always do. Press **Ctrl+F12** to see the game with and without Lumenveil, and
    **Ctrl+F7** to open the settings.
 
@@ -39,6 +39,8 @@ models. Without `lampdata.bin` the game still runs with the fog, but placed lamp
 | `Lumenveil\lamp_extract.exe` | The setup tool `Lumenveil-Setup.cmd` runs |
 | `Lumenveil\*.txt` | Licences and notices |
 | `Lumenveil-Setup.cmd`, `Lumenveil-Uninstall.cmd` | Setup and removal |
+| `Lumenveil\defaults\` | The settings as shipped, so an update can tell the settings you changed from the others |
+| `Lordaeron-Update.cmd`, `Lordaeron-Play.cmd`, `Lordaeron\update.ps1` | Lordaeron's updater, see [Updating](#updating) |
 
 Files Lumenveil writes itself, next to `Wow.exe`:
 
@@ -50,8 +52,22 @@ Files Lumenveil writes itself, next to `Wow.exe`:
 
 ## Updating
 
-Close the game, keep a copy of your `CoAVolFog.ini` if you changed settings, and drag the new zip's files into the
-game folder as above. Settings that are new in a release take their default when your old ini doesn't have them, so
+On Lordaeron, double-click `Lordaeron-Update.cmd` in the game folder, or start the game with `Lordaeron-Play.cmd`,
+which updates and then starts it. The updater:
+
+- downloads the new version from lordaeron.eu and checks its SHA-256 before it changes anything;
+- waits until the game in this folder is closed;
+- keeps your settings: a setting you changed keeps your value, one you never changed takes the new default, and new
+  settings are added; the same for the zones' looks in `CoAVolFog-regions.ini`;
+- keeps a copy of the version you had (`Lordaeron-Update.cmd -Rollback` goes back to it, and skips the version you left
+  until a newer one comes out), and runs `Lumenveil-Setup.cmd` again;
+- also keeps the client patches in your `Data` folder (`patch-W.MPQ`, `patch-Z.MPQ`) up to date, and empties the
+  game's `Cache` folder when one changes;
+- writes what it did in `Lordaeron\update.log`. `Lordaeron-Update.cmd -Test` follows the test builds,
+  `Lordaeron-Update.cmd -Stable` the releases again.
+
+By hand: close the game, keep a copy of your `CoAVolFog.ini` if you changed settings, and drag the new zip's files into
+the game folder as above. Settings that are new in a release take their default when your old ini doesn't have them, so
 you can put your old ini back. Run `Lumenveil-Setup.cmd` again when the release notes say so.
 
 ## Uninstall
@@ -59,6 +75,8 @@ you can put your old ini back. Run `Lumenveil-Setup.cmd` again when the release 
 Close the game and double-click `Lumenveil-Uninstall.cmd`. Or delete these by hand: `version.dll`, `CoAVolFog.dll`,
 `CoAVolFog.ini`, `CoAVolFog-regions.ini`, `lampdata.bin`, `liquiddata.bin`, `CoAVolFog.log`, `CoAVolFog-spots.txt`,
 the `CoAVolFog-spots` and `Lumenveil` folders, and the two `Lumenveil-*.cmd` files. The game is then exactly as before.
+Lordaeron's updater stays, as it also keeps the client patches up to date; delete `Lordaeron-Update.cmd`,
+`Lordaeron-Play.cmd` and the `Lordaeron` folder to remove it too.
 
 To switch Lumenveil off without removing it, set `Enable=0` in `CoAVolFog.ini`.
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0 (2026-10-25)
+
+- Lordaeron's updater: double-click `Lordaeron-Update.cmd` in the game folder, or start the game with
+  `Lordaeron-Play.cmd`, which updates and then starts it. It keeps Lumenveil up to date from lordaeron.eu:
+  - it checks each download's SHA-256 before it changes anything, and waits until the game in this folder is closed;
+  - your settings stay yours: a setting you changed keeps your value, one you never changed takes the new default, and
+    new settings are added; the same for the zones' looks in `CoAVolFog-regions.ini`;
+  - it keeps a copy of the version you had: `Lordaeron-Update.cmd -Rollback` goes back to it and skips the version you
+    left until a newer one comes out;
+  - it runs the setup again, shows what is new and the credits, and speaks English, French, German, Spanish or
+    Russian, as your client does;
+  - it also keeps the client patches in `Data` (`patch-W.MPQ`, `patch-Z.MPQ`) up to date, and empties the game's
+    `Cache` folder when one changes.
+- `Lumenveil-Setup.cmd /auto` runs without stopping, for the updater.
+- The zip holds the settings as shipped in `Lumenveil\defaults\`, and its README the credits: Lumenveil by the
+  Lumenveil authors ([github.com/lumenveil/Lumenveil](https://github.com/lumenveil/Lumenveil)), built on CoAVolFog,
+  and this fork's source.
+
 ## 0.5.3 (2026-10-25)
 
 From [Lumenveil 0.1.1](https://github.com/lumenveil/Lumenveil/releases/tag/v0.1.1), for antivirus programs that warned

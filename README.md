@@ -14,6 +14,13 @@ game's files.
 
 > Press **Ctrl+F12** in the game to switch Lumenveil off and on and see the difference for yourself.
 
+> **Lumenveil for Lordaeron.** This repository is the [Lordaeron](https://lordaeron.eu) server's fork of
+> [Lumenveil](https://github.com/lumenveil/Lumenveil), by the Lumenveil authors, itself built on
+> [CoAVolFog](https://github.com/jealous-sound/coa-vfog). It adds the lamps of the campfires and braziers a server
+> places, the later clients' water look, a tuned look, and an updater for the server's players
+> (`Lordaeron-Update.cmd`, see [Updating](docs/INSTALL.md#updating)); [CHANGELOG.md](CHANGELOG.md) lists every change
+> since 0.1.0. It stays free software under the GNU GPL v2, with the credits [below](#credits).
+
 ## Before and after
 
 Each pair is the same moment with Lumenveil switched off (left) and on (right), using its compare key
@@ -185,6 +192,10 @@ include the game and doesn't say where to get it. See [LEGAL.md](LEGAL.md).
 Please don't attach game files, or data made from them, to issues or pull requests.
 
 ## Credits
+
+Lumenveil is made by the **Lumenveil authors**: [github.com/lumenveil/Lumenveil](https://github.com/lumenveil/Lumenveil).
+This fork for the Lordaeron server is kept at [github.com/ayoub-khemissi/Lumenveil](https://github.com/ayoub-khemissi/Lumenveil),
+and its releases are built there.
 
 Lumenveil is built on **CoAVolFog** by jealous-sound, the volumetric fog renderer for the 3.3.5a client, released under
 the GNU GPL v2. The night lights, water, relief, wet surfaces, regions and much more were added on top of it;
