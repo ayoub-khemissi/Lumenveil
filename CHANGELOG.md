@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.2 (2026-10-25)
+
+- The shipped settings (`CoAVolFog.ini`) take a look tuned in the game. An existing `CoAVolFog.ini` is kept as it is;
+  only a new install, or one whose `CoAVolFog.ini` was deleted, gets them:
+  - fog: a little more of it overall (`Density` 0.5, `FarFog` 1.04) but less low ground fog (`GroundFog` 1), the
+    Classic client's fog layers where they exist (`DataMode=1`), patchier fog (`Drift` 0.8) in banks that pool more
+    in valleys (`BankCover` 0.45, `BankPool` 1.5), the fog ceiling at 200 yd over the ground, more morning mist (3),
+    evening haze (0.8) and weather fog (0.6), and the sun lighting the distance haze from every side
+    (`AerialPerspective=0`);
+  - light: stronger sun and moon light in the fog (`SunScatter` 1.75) with a lower exposure (0.52), the low sun's
+    warm light and stronger shafts at dawn and dusk back on (`LowSunLight`, `LowSunShafts` 1), stronger shafts (0.8)
+    and surface shadows (0.75), a little less saturation (0.95);
+  - lamps: stronger halos (`LampFog` 0.6), 32 lamps at a time, fires at 0.8, lamp light 3, the spell light at 0.5
+    and darker nights (0.8);
+  - water: the later clients' smooth, bump-mapped look (`WaterReflect` 0.7, `WaterGlitter` 0.4, `WaterClarity`
+    0.25, `WaterSmooth` 1, `WaterBump` 1, `WaterWaves` 0.2), and the effect kept under water;
+  - surfaces: a stronger sheen (1.3), wet surfaces and puddles in rain on, relief off;
+  - `SettingsVersion=1`, so the first start no longer rewrites the water settings.
+
 ## 0.5.1 (2026-10-25)
 
 - Campfires, braziers, candles and torches that the server places as game objects (cooking fires, the fires of

@@ -39,7 +39,7 @@ the file from the zip.
 | `ObjectLamps` | Campfires, braziers and candles the server places light the world like the other lamps (1) or not (0) | a fire's light seems to move with the camera |
 | `Lantern` | A lantern at your belt: 0 off, 1 in the dark, 2 always (Ctrl+F6) | |
 | `WaterReflect`, `WaterGlitter`, `WaterWaves` | Reflections, sun glitter and waves on water | |
-| `WetSurfaces`, `Puddles` | Wet stone and soil, and puddles, in rain; 0 in the shipped settings | |
+| `WetSurfaces`, `Puddles` | Wet stone and soil, and puddles, in rain | |
 | `Relief`, `ReliefModels`, `ReliefDepth` | Relief on and off (Ctrl+F4); relief on building walls, floors and models (`ReliefModels`, 0 in the shipped settings); its depth in yards | the frame rate is low |
 | `FarClipMax` | How far the view distance can be lifted on the old continents; 0 = the game's own limit | the game runs out of memory |
 | `Saturation`, `Exposure` | The colour and brightness of the final picture | |

@@ -113,8 +113,8 @@ belongs to Blizzard Entertainment.
 - **Spell light.** Spells, enchants and glowing projectiles light their surroundings.
 - **Water.** Waves that follow the wind and the weather, reflections that stay put as you turn, sun glitter, rings
   where rain hits the water, ripples around you, and lamps reflected at night.
-- **Wet surfaces** (off in the shipped settings; switch on in Ctrl+F7). In rain, stone and soil darken and shine and
-  puddles mirror the torches; grass doesn't turn into a mirror.
+- **Wet surfaces.** In rain, stone and soil darken and shine and puddles mirror the torches; grass doesn't turn into
+  a mirror.
 - **Relief** (off in the shipped settings; switch on in Ctrl+F7). Depth on building walls, floors and models, from
   height maps the mod makes in the game from your own textures.
 - **A look for each zone.** 37 zones are tuned by hand for dawn, day, dusk and night, in clear weather, rain, snow and
