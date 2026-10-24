@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.2 (2026-10-25)
+
+- Installing is: unzip anywhere, double-click `Lordaeron-Play.cmd`.
+  - Unzipped next to `Wow.exe`, it runs from there; unzipped in a folder inside the game folder, it installs
+    Lumenveil in the game folder; unzipped anywhere else, it asks for the game folder and installs Lumenveil there.
+    Settings already in that folder are kept as an update keeps them.
+  - The first time, it puts a Lordaeron icon (World of Warcraft's) on the desktop, which starts the game the same way:
+    Lumenveil and the client patches then stay up to date by themselves.
+  - After a first install it waits for Enter before it starts the game, so the messages can be read.
+- The updater speaks the system's language when it hasn't found a game folder yet.
+
 ## 0.6.1 (2026-10-25)
 
 - `Lordaeron-Play.cmd` and `Lordaeron-Update.cmd` run the setup by themselves when `lampdata.bin` or `liquiddata.bin`

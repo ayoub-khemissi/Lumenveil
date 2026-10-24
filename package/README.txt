@@ -1,11 +1,12 @@
 Lumenveil - volumetric fog, night lights, light shafts and water for the World of Warcraft 3.3.5a client
 
 INSTALL
-  1. Close the game.
-  2. Copy everything from the zip into your game folder, next to Wow.exe.
-  3. Start the game with Lordaeron-Play.cmd. The first time, it reads your own game files and writes where the
-     world's lamps and water are (lampdata.bin, liquiddata.bin): about half a minute; nothing in your game files is
-     changed. Then it starts the game. Start the game with it from now on: it keeps everything up to date.
+  1. Unzip this anywhere (or right into your game folder, next to Wow.exe).
+  2. Double-click Lordaeron-Play.cmd. If it isn't next to Wow.exe, it finds your game folder (or asks you for it) and
+     installs Lumenveil there. The first time, it reads your own game files to find the world's lamps and water
+     (about half a minute; nothing in your game files is changed), puts a Lordaeron icon on your desktop, and starts
+     the game.
+  3. From now on, start the game with the Lordaeron icon: Lumenveil and the client patches stay up to date.
 
 UPDATE
   Double-click Lordaeron-Update.cmd, or start the game with Lordaeron-Play.cmd (it updates, then starts the game).

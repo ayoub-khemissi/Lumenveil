@@ -14,19 +14,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$UpdaterVersion = 2
+$UpdaterVersion = 3
 $Utf8 = New-Object System.Text.UTF8Encoding $false
 
-if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
-$Root = (Resolve-Path -LiteralPath $Root).Path
-$Own = Join-Path $Root 'Lordaeron'
-$Work = Join-Path $Own 'download'
-$Backups = Join-Path $Own 'backup'
+$Package = Split-Path -Parent $PSScriptRoot
+$InstallFrom = ''
+$Own = ''
+$Work = ''
+$Backups = ''
 
 $Texts = @{
     en = @{
         Title = 'Lordaeron update'
-        NoGame = 'Put Lordaeron-Update.cmd and the Lordaeron folder in your game folder, next to Wow.exe, and run it again.'
+        NoGame = 'No game folder was chosen. Unzip Lumenveil anywhere and double-click Lordaeron-Play.cmd again, or copy its files next to Wow.exe.'
+        PickFolder = 'Choose your World of Warcraft 3.3.5 folder, the one that holds Wow.exe'
+        NotGameFolder = 'There is no Wow.exe in {0}: choose the folder that holds it.'
+        Installed = 'Lumenveil {0} is installed in {1}.'
+        CanDelete = 'You can delete the folder you unzipped it in: {0}'
+        ShortcutCreated = 'A Lordaeron icon is now on your desktop: start the game with it, and Lumenveil and the client patches stay up to date by themselves.'
+        PressToPlay = 'Press Enter to start the game.'
         Checking = 'Checking for updates on lordaeron.eu...'
         Offline = 'lordaeron.eu could not be reached ({0}). Nothing was changed.'
         PatchCurrent = '{0} is up to date ({1}).'
@@ -56,7 +62,13 @@ $Texts = @{
     }
     fr = @{
         Title = 'Mise à jour de Lordaeron'
-        NoGame = 'Placez Lordaeron-Update.cmd et le dossier Lordaeron dans votre dossier de jeu, à côté de Wow.exe, puis relancez-le.'
+        NoGame = 'Aucun dossier de jeu n''a été choisi. Décompressez Lumenveil n''importe où et relancez Lordaeron-Play.cmd, ou copiez ses fichiers à côté de Wow.exe.'
+        PickFolder = 'Choisissez votre dossier World of Warcraft 3.3.5, celui qui contient Wow.exe'
+        NotGameFolder = 'Il n''y a pas de Wow.exe dans {0} : choisissez le dossier qui le contient.'
+        Installed = 'Lumenveil {0} est installé dans {1}.'
+        CanDelete = 'Vous pouvez supprimer le dossier où vous l''avez décompressé : {0}'
+        ShortcutCreated = 'Une icône Lordaeron est maintenant sur votre bureau : lancez le jeu avec elle, et Lumenveil et les patchs du client restent à jour tout seuls.'
+        PressToPlay = 'Appuyez sur Entrée pour lancer le jeu.'
         Checking = 'Recherche des mises à jour sur lordaeron.eu...'
         Offline = 'lordaeron.eu est injoignable ({0}). Rien n''a été modifié.'
         PatchCurrent = '{0} est à jour ({1}).'
@@ -86,7 +98,13 @@ $Texts = @{
     }
     de = @{
         Title = 'Lordaeron-Update'
-        NoGame = 'Lege Lordaeron-Update.cmd und den Ordner Lordaeron in deinen Spielordner neben Wow.exe und starte es erneut.'
+        NoGame = 'Es wurde kein Spielordner gewählt. Entpacke Lumenveil an einem beliebigen Ort und starte Lordaeron-Play.cmd erneut, oder kopiere die Dateien neben Wow.exe.'
+        PickFolder = 'Wähle deinen World of Warcraft 3.3.5-Ordner, den mit Wow.exe'
+        NotGameFolder = 'In {0} gibt es keine Wow.exe: wähle den Ordner, der sie enthält.'
+        Installed = 'Lumenveil {0} ist in {1} installiert.'
+        CanDelete = 'Du kannst den Ordner löschen, in den du es entpackt hast: {0}'
+        ShortcutCreated = 'Auf deinem Desktop liegt jetzt ein Lordaeron-Symbol: starte das Spiel damit, und Lumenveil und die Client-Patches bleiben von selbst aktuell.'
+        PressToPlay = 'Drücke Enter, um das Spiel zu starten.'
         Checking = 'Suche nach Updates auf lordaeron.eu...'
         Offline = 'lordaeron.eu ist nicht erreichbar ({0}). Es wurde nichts geändert.'
         PatchCurrent = '{0} ist aktuell ({1}).'
@@ -116,7 +134,13 @@ $Texts = @{
     }
     es = @{
         Title = 'Actualización de Lordaeron'
-        NoGame = 'Coloca Lordaeron-Update.cmd y la carpeta Lordaeron en tu carpeta del juego, junto a Wow.exe, y ejecútalo de nuevo.'
+        NoGame = 'No se ha elegido ninguna carpeta del juego. Descomprime Lumenveil en cualquier sitio y vuelve a ejecutar Lordaeron-Play.cmd, o copia sus archivos junto a Wow.exe.'
+        PickFolder = 'Elige tu carpeta de World of Warcraft 3.3.5, la que contiene Wow.exe'
+        NotGameFolder = 'No hay ningún Wow.exe en {0}: elige la carpeta que lo contiene.'
+        Installed = 'Lumenveil {0} está instalado en {1}.'
+        CanDelete = 'Puedes borrar la carpeta donde lo descomprimiste: {0}'
+        ShortcutCreated = 'Ahora tienes un icono de Lordaeron en el escritorio: inicia el juego con él, y Lumenveil y los parches del cliente se mantienen al día solos.'
+        PressToPlay = 'Pulsa Intro para iniciar el juego.'
         Checking = 'Buscando actualizaciones en lordaeron.eu...'
         Offline = 'No se pudo conectar con lordaeron.eu ({0}). No se ha cambiado nada.'
         PatchCurrent = '{0} está al día ({1}).'
@@ -146,7 +170,13 @@ $Texts = @{
     }
     ru = @{
         Title = 'Обновление Lordaeron'
-        NoGame = 'Поместите Lordaeron-Update.cmd и папку Lordaeron в папку игры рядом с Wow.exe и запустите его снова.'
+        NoGame = 'Папка игры не выбрана. Распакуйте Lumenveil в любое место и снова запустите Lordaeron-Play.cmd или скопируйте его файлы рядом с Wow.exe.'
+        PickFolder = 'Выберите папку World of Warcraft 3.3.5, в которой находится Wow.exe'
+        NotGameFolder = 'В {0} нет Wow.exe: выберите папку, в которой он находится.'
+        Installed = 'Lumenveil {0} установлен в {1}.'
+        CanDelete = 'Можно удалить папку, в которую вы его распаковали: {0}'
+        ShortcutCreated = 'На рабочем столе появился значок Lordaeron: запускайте игру с него, и Lumenveil и патчи клиента будут обновляться сами.'
+        PressToPlay = 'Нажмите Enter, чтобы запустить игру.'
         Checking = 'Поиск обновлений на lordaeron.eu...'
         Offline = 'Не удалось связаться с lordaeron.eu ({0}). Ничего не изменено.'
         PatchCurrent = '{0}: последняя версия ({1}).'
@@ -176,15 +206,18 @@ $Texts = @{
     }
 }
 
-function Get-Language {
-    $data = Join-Path $Root 'Data'
-    $locale = Get-ChildItem -LiteralPath $data -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -cmatch '^[a-z]{2}[A-Z]{2}$' } | Select-Object -First 1
-    if ($locale -and $Texts.ContainsKey($locale.Name.Substring(0, 2))) { return $locale.Name.Substring(0, 2) }
+function Get-Language([string]$folder) {
+    if ($folder) {
+        $locale = Get-ChildItem -LiteralPath (Join-Path $folder 'Data') -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -cmatch '^[a-z]{2}[A-Z]{2}$' } | Select-Object -First 1
+        if ($locale -and $Texts.ContainsKey($locale.Name.Substring(0, 2))) { return $locale.Name.Substring(0, 2) }
+    }
+    $system = (Get-UICulture).TwoLetterISOLanguageName
+    if ($Texts.ContainsKey($system)) { return $system }
     return 'en'
 }
 
-$Lang = Get-Language
+$Lang = Get-Language ''
 
 function Text([string]$key) {
     $table = $Texts[$Lang]
@@ -195,6 +228,7 @@ function Text([string]$key) {
 }
 
 function Log([string]$line) {
+    if (-not $Own) { return }
     try {
         $file = Join-Path $Own 'update.log'
         if ((Test-Path -LiteralPath $file) -and (Get-Item -LiteralPath $file).Length -gt 262144) {
@@ -443,6 +477,63 @@ function Update-Updater($feed) {
     Say (Text 'UpdaterUpdated') 'Green'
 }
 
+function Get-DllVersion([string]$folder) {
+    $dll = Join-Path $folder 'CoAVolFog.dll'
+    if (-not (Test-Path -LiteralPath $dll)) { return $null }
+    $parsed = $null
+    $text = (Get-Item -LiteralPath $dll).VersionInfo.ProductVersion
+    if ($text -and [Version]::TryParse($text.Trim(), [ref]$parsed)) { return $parsed }
+    return [Version]'0.0.0'
+}
+
+function Install-Package([string]$stage, $installed, [Version]$version) {
+    Wait-GameClosed
+    $settings = @('CoAVolFog.ini', 'CoAVolFog-regions.ini')
+    $files = @(Get-RelativeFiles $stage)
+    if ($installed) {
+        $backup = Join-Path $Backups ('Lumenveil-' + $installed)
+        if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
+        New-Item -ItemType Directory -Path $backup -Force | Out-Null
+        $existing = @($files + $settings | Select-Object -Unique |
+            Where-Object { -not (Test-UpdaterFile $_) -and (Test-Path -LiteralPath (Join-Path $Root $_)) })
+        Copy-Tree $Root $backup $existing
+        $added = @($files | Where-Object { -not (Test-UpdaterFile $_) -and $existing -notcontains $_ })
+        [IO.File]::WriteAllText((Join-Path $backup 'added.txt'), (($added -join "`r`n") + "`r`n"), $Utf8)
+    }
+    $oldDefaults = @{}
+    foreach ($name in $settings) { $oldDefaults[$name] = Read-Lines (Join-Path (Join-Path $Root 'Lumenveil\defaults') $name) }
+    $copied = @($files | Where-Object {
+        $settings -notcontains $_ -and -not (Test-SameFile (Join-Path $stage $_) (Join-Path $Root $_))
+    })
+    Copy-Tree $stage $Root $copied
+    $kept = $false
+    foreach ($name in $settings) {
+        $shipped = Join-Path $stage $name
+        $mine = Join-Path $Root $name
+        if (-not (Test-Path -LiteralPath $shipped)) { continue }
+        if (-not (Test-Path -LiteralPath $mine)) {
+            if (-not $installed -or $name -eq 'CoAVolFog.ini') { Copy-Item -LiteralPath $shipped -Destination $mine -Force }
+            continue
+        }
+        Write-Lines $mine (Merge-Ini $oldDefaults[$name] (Read-Lines $shipped) (Read-Lines $mine))
+        $kept = $true
+    }
+    [IO.File]::WriteAllText((Join-Path $Own 'lumenveil.txt'), [string]$version, $Utf8)
+    if ($kept) { Say (Text 'SettingsKept') }
+    Get-ChildItem -LiteralPath $Backups -Directory | Sort-Object LastWriteTime -Descending | Select-Object -Skip 2 |
+        ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+}
+
+function Install-FromFolder {
+    $version = Get-DllVersion $InstallFrom
+    $installed = Get-InstalledLumenveil
+    if ($installed -and $version -ne [Version]'0.0.0' -and $installed -ge $version) { return }
+    Install-Package $InstallFrom $installed $version
+    Say (Text 'Installed' (Get-VersionText $version) $Root) 'Green'
+    Say (Text 'CanDelete' $InstallFrom)
+    $script:Notable = $true
+}
+
 function Update-Lumenveil($feed, [Version]$installed, [string]$channelNote) {
     $latest = [Version]([string]$feed.version)
     $hold = Join-Path $Own 'hold.txt'
@@ -464,41 +555,9 @@ function Update-Lumenveil($feed, [Version]$installed, [string]$channelNote) {
     $stage = Join-Path $Work ('Lumenveil-' + $latest)
     if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
     Expand-Archive -LiteralPath $zip -DestinationPath $stage -Force
-    Wait-GameClosed
-
-    $settings = @('CoAVolFog.ini', 'CoAVolFog-regions.ini')
-    $files = @(Get-RelativeFiles $stage)
-    $backup = Join-Path $Backups ('Lumenveil-' + $installed)
-    if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
-    New-Item -ItemType Directory -Path $backup -Force | Out-Null
-    $existing = @($files + $settings | Select-Object -Unique |
-        Where-Object { -not (Test-UpdaterFile $_) -and (Test-Path -LiteralPath (Join-Path $Root $_)) })
-    Copy-Tree $Root $backup $existing
-    $added = @($files | Where-Object { -not (Test-UpdaterFile $_) -and $existing -notcontains $_ })
-    [IO.File]::WriteAllText((Join-Path $backup 'added.txt'), (($added -join "`r`n") + "`r`n"), $Utf8)
-
-    $oldDefaults = @{}
-    foreach ($name in $settings) { $oldDefaults[$name] = Read-Lines (Join-Path (Join-Path $Root 'Lumenveil\defaults') $name) }
-    $copied = @($files | Where-Object {
-        $settings -notcontains $_ -and -not (Test-SameFile (Join-Path $stage $_) (Join-Path $Root $_))
-    })
-    Copy-Tree $stage $Root $copied
-    $kept = $false
-    foreach ($name in $settings) {
-        $shipped = Join-Path $stage $name
-        $mine = Join-Path $Root $name
-        if (-not (Test-Path -LiteralPath $shipped)) { continue }
-        if (-not (Test-Path -LiteralPath $mine)) {
-            if ($name -eq 'CoAVolFog.ini') { Copy-Item -LiteralPath $shipped -Destination $mine -Force }
-            continue
-        }
-        Write-Lines $mine (Merge-Ini $oldDefaults[$name] (Read-Lines $shipped) (Read-Lines $mine))
-        $kept = $true
-    }
-    [IO.File]::WriteAllText((Join-Path $Own 'lumenveil.txt'), [string]$latest, $Utf8)
+    Install-Package $stage $installed $latest
     Remove-Item -LiteralPath $stage -Recurse -Force
     Remove-Item -LiteralPath $zip -Force
-    if ($kept) { Say (Text 'SettingsKept') }
     Invoke-Setup
     if ($feed.notes) {
         Write-Host ''
@@ -507,8 +566,48 @@ function Update-Lumenveil($feed, [Version]$installed, [string]$channelNote) {
     }
     Write-Host ''
     Say (Text 'Credits') 'DarkGray'
-    Get-ChildItem -LiteralPath $Backups -Directory | Sort-Object LastWriteTime -Descending | Select-Object -Skip 2 |
-        ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+    $script:Updated = $true
+}
+
+function Select-GameFolder {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        $owner = New-Object System.Windows.Forms.Form
+        $owner.TopMost = $true
+        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.Description = Text 'PickFolder'
+        $dialog.ShowNewFolderButton = $false
+        while ($dialog.ShowDialog($owner) -eq [System.Windows.Forms.DialogResult]::OK) {
+            if (Test-Path -LiteralPath (Join-Path $dialog.SelectedPath 'Wow.exe')) { return $dialog.SelectedPath }
+            Write-Host (Text 'NotGameFolder' $dialog.SelectedPath) -ForegroundColor Yellow
+        }
+    } catch { }
+    return ''
+}
+
+function Add-Shortcut {
+    $done = Join-Path $Own 'shortcut.txt'
+    $play = Join-Path $Root 'Lordaeron-Play.cmd'
+    if ((Test-Path -LiteralPath $done) -or -not (Test-Path -LiteralPath $play)) { return }
+    try {
+        $desktop = [Environment]::GetFolderPath('Desktop')
+        $shell = New-Object -ComObject WScript.Shell
+        $path = Join-Path $desktop 'Lordaeron.lnk'
+        if ((Test-Path -LiteralPath $path) -and $shell.CreateShortcut($path).WorkingDirectory -ine $Root) {
+            $path = Join-Path $desktop ('Lordaeron (' + (Split-Path -Leaf $Root) + ').lnk')
+        }
+        $link = $shell.CreateShortcut($path)
+        $link.TargetPath = $play
+        $link.WorkingDirectory = $Root
+        $link.IconLocation = (Join-Path $Root 'Wow.exe') + ',0'
+        $link.Description = 'World of Warcraft on Lordaeron'
+        $link.Save()
+        [IO.File]::WriteAllText($done, $path, $Utf8)
+        Say (Text 'ShortcutCreated') 'Green'
+        $script:Notable = $true
+    } catch {
+        Log ('no desktop shortcut: ' + $_.Exception.Message)
+    }
 }
 
 function Restore-Lumenveil {
@@ -541,15 +640,37 @@ function Restore-Lumenveil {
 
 $failed = $false
 $script:SetupRan = $false
+$script:Notable = $false
+$script:Updated = $false
 try {
     $Host.UI.RawUI.WindowTitle = Text 'Title'
 } catch { }
 try {
-    if (-not (Test-Path -LiteralPath (Join-Path $Root 'Wow.exe'))) { throw (Text 'NoGame') }
+    if (-not $Root) {
+        if (Test-Path -LiteralPath (Join-Path $Package 'Wow.exe')) {
+            $Root = $Package
+        } elseif (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $Package) 'Wow.exe')) {
+            $Root = Split-Path -Parent $Package
+            $InstallFrom = $Package
+        } else {
+            $Root = Select-GameFolder
+            $InstallFrom = $Package
+        }
+    }
+    if (-not $Root -or -not (Test-Path -LiteralPath (Join-Path $Root 'Wow.exe'))) {
+        $Root = ''
+        throw (Text 'NoGame')
+    }
+    $Root = (Resolve-Path -LiteralPath $Root).Path
+    $Own = Join-Path $Root 'Lordaeron'
+    $Work = Join-Path $Own 'download'
+    $Backups = Join-Path $Own 'backup'
+    $Lang = Get-Language $Root
     foreach ($folder in @($Own, $Work, $Backups)) {
         if (-not (Test-Path -LiteralPath $folder)) { New-Item -ItemType Directory -Path $folder -Force | Out-Null }
     }
     Log ('updater ' + $UpdaterVersion + ' in ' + $Root)
+    if ($InstallFrom -and (Test-Path -LiteralPath (Join-Path $InstallFrom 'CoAVolFog.dll'))) { Install-FromFolder }
     $channelFile = Join-Path $Own 'channel.txt'
     if ($Test) {
         [IO.File]::WriteAllText($channelFile, 'test', $Utf8)
@@ -590,16 +711,25 @@ try {
     $failed = $true
     Say (Text 'Failed' $_.Exception.Message) 'Red'
 }
-if (-not $Rollback -and -not $script:SetupRan) {
+if ($Root -and -not $Rollback) {
     try {
-        if ((Get-InstalledLumenveil) -and (Test-SetupMissing)) { Invoke-Setup }
+        if (-not $script:SetupRan -and (Get-InstalledLumenveil) -and (Test-SetupMissing)) { Invoke-Setup }
+        Add-Shortcut
     } catch {
         $failed = $true
         Say (Text 'Failed' $_.Exception.Message) 'Red'
     }
 }
-if ($Play) {
-    if ($failed) { Start-Sleep -Seconds 4 }
+if ($Play -and $Root) {
+    if ($failed) {
+        Start-Sleep -Seconds 4
+    } elseif ($script:Notable) {
+        Write-Host ''
+        Write-Host (Text 'PressToPlay')
+        [void][Console]::ReadLine()
+    } elseif ($script:Updated) {
+        Start-Sleep -Seconds 5
+    }
     $game = Join-Path $Root 'Wow.exe'
     if (Test-Path -LiteralPath $game) {
         Say (Text 'Starting')
