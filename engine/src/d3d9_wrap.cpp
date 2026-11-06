@@ -1,5 +1,7 @@
 #include "d3d9_wrap.h"
 
+#include "auto_login.h"
+
 #include "client_shadows.h"
 #include "draw_log.h"
 #include "fog_model.h"
@@ -208,6 +210,7 @@ public:
             g_callWatch |= kWatchProfile;
         else
             g_callWatch &= ~kWatchProfile;
+        AutoLoginFrame();
         profile.Begin(m_real, ProfileSection::BeforePresent);
         m_relief.LeaveMaterialTargets(m_real);
         DrawLogBeforePresent();

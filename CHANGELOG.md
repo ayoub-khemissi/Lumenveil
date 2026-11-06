@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 (2026-11-06)
+
+- The Lordaeron launcher's automatic login: when the launcher starts the game with a one-time ticket, Lumenveil logs in
+  on the login screen as soon as it shows, through the client's own script runner (checked to be the 3.3.5a one),
+  without typing anything. The ticket comes in the game's environment, is taken out of it at once, may only hold letters
+  and digits, and is forgotten after a minute.
+
 ## 0.7.0 (2026-11-06)
 
 - Made for the Lordaeron launcher, which now installs, updates and sets Lumenveil.

@@ -150,6 +150,7 @@ if(NOT VF_SYSTEM_CLIPBOARD)
 endif()
 
 add_library(CoAVolFog SHARED
+    src/auto_login.cpp
     src/belt_lantern.cpp
     src/corpse_lights.cpp
     src/client_shadows.cpp
@@ -210,7 +211,7 @@ target_compile_definitions(version PRIVATE WIN32_LEAN_AND_MEAN)
 vf_version_resource(version version.dll VFT_DLL
     "Lumenveil loader: passes the Windows version API on to the system's version.dll and loads CoAVolFog.dll")
 
-add_executable(vfog_harness tests/harness.cpp src/belt_lantern.cpp src/cloud_noise.cpp src/config.cpp
+add_executable(vfog_harness tests/harness.cpp src/auto_login.cpp src/belt_lantern.cpp src/cloud_noise.cpp src/config.cpp
     src/corpse_lights.cpp src/drift_noise.cpp src/effect_lights.cpp src/fog_data.cpp src/fog_model.cpp src/lamp_catalog.cpp
     src/lamp_selection.cpp src/lamp_tiles.cpp src/liquid_map.cpp src/log.cpp src/material_catalog.cpp
     src/object_lamps.cpp src/region_settings.cpp src/region_zones.cpp src/relief_catalog.cpp src/runtime_heights.cpp

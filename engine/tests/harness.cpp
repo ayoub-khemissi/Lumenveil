@@ -1,3 +1,4 @@
+#include "auto_login.h"
 #include "client_code.h"
 #include "client_shadows.h"
 #include "cloud_noise.h"
@@ -2812,6 +2813,24 @@ void CheckNewIniKeysAreRead(const std::wstring& outDir)
     Check(saved && store.Get().farLights == 2.5f, "far light cores: the INI key FarLights is read");
     std::printf("     ShaftGlare=0.4 in an INI reads as %.2f\n", store.Get().shaftGlare);
     Check(saved && store.Get().shaftGlare == 0.4f, "sun glare: the INI key ShaftGlare is read");
+}
+
+void CheckAutoLogin()
+{
+    SetEnvironmentVariableA("LORDAERON_AUTOLOGIN", "ARTHAS\tQWERTYUIOPASDFGH");
+    AutoLoginAttach();
+    char left[8] = {};
+    const DWORD remaining = GetEnvironmentVariableA("LORDAERON_AUTOLOGIN", left, sizeof(left));
+    const std::string script = AutoLoginScriptForTest();
+    const bool taken = AutoLoginPending() && remaining == 0 &&
+                       script.find("DefaultServerLogin(\"ARTHAS\", \"QWERTYUIOPASDFGH\")") != std::string::npos;
+    std::printf("     a launcher ticket in the environment: taken %d, left in the environment %lu\n", taken ? 1 : 0, remaining);
+    SetEnvironmentVariableA("LORDAERON_AUTOLOGIN", "ARTHAS\tQWERTY\") os.exit() --");
+    AutoLoginAttach();
+    std::printf("     a ticket with a quote: script %s\n", AutoLoginScriptForTest().find("os.exit") == std::string::npos ? "refused" : "kept");
+    Check(taken && AutoLoginScriptForTest().find("os.exit") == std::string::npos,
+          "auto login: the launcher's ticket is read from the environment and removed from it, and only letters and "
+          "digits reach the login script");
 }
 
 void CheckPlainGameKey(const std::wstring& outDir, const std::wstring& shippedIni)
@@ -33551,6 +33570,7 @@ int Run(const std::wstring& outDir, const std::string& dataPath, const std::wstr
     CheckNewIniKeysAreRead(outDir);
     CheckWaterMemoryKey(outDir, FullPath(iniPath));
     CheckPlainGameKey(outDir, FullPath(iniPath));
+    CheckAutoLogin();
     CheckLanternKeys(outDir, FullPath(iniPath));
     CheckSpots(outDir, FullPath(iniPath));
     CheckEffectLightKey(outDir, FullPath(iniPath));

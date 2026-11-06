@@ -1,3 +1,4 @@
+#include "auto_login.h"
 #include "client_shadows.h"
 #include "config.h"
 #include "d3d9_wrap.h"
@@ -121,6 +122,7 @@ void Attach(HMODULE module)
 {
     std::string dir = ModuleDirectory(module);
     LogOpen((dir + "CoAVolFog.log").c_str());
+    AutoLoginAttach();
     ConfigStore::Upgrade(dir + "CoAVolFog.ini");
     GlobalConfig().Load(dir + "CoAVolFog.ini");
     DrawLogSetDirectory(dir);
