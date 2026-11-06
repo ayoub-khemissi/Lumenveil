@@ -48,6 +48,9 @@ EXTRA_SECTIONS = [
 EXTRAS = [
     ("Enable", "engine", "Lumenveil", "bool",
      {"help": "Off: the game is drawn as without Lumenveil, which stays installed. Needs a client restart"}),
+    ("PlainGame", "engine", "Plain game", "bool",
+     {"help": "On: the game is shown without Lumenveil, as the compare key shows it, at once and at every start. "
+              "Off: Lumenveil is shown"}),
     ("EngineHooks", "engine", "Engine hooks", "bool",
      {"help": "The hooks into the client that give the lamps, water, relief, shadows and lifted view distance. "
               "Off leaves only the fog. Needs a client restart"}),

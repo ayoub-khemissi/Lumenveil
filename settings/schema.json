@@ -273,6 +273,7 @@
    "title": "Engine",
    "settings": [
     "Enable",
+    "PlainGame",
     "EngineHooks",
     "Overlay"
    ],
@@ -2449,6 +2450,15 @@
    "type": "bool",
    "help": "Off: the game is drawn as without Lumenveil, which stays installed. Needs a client restart",
    "default": true,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "PlainGame": {
+   "section": "engine",
+   "label": "Plain game",
+   "type": "bool",
+   "help": "On: the game is shown without Lumenveil, as the compare key shows it, at once and at every start. Off: Lumenveil is shown",
+   "default": false,
    "globalOnly": true,
    "level": "expert"
   },

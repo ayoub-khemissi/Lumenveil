@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 (2026-11-06)
+
+- Made for the Lordaeron launcher, which now installs, updates and sets Lumenveil.
+  - `PlainGame` in `CoAVolFog.ini` shows the plain game as Ctrl+F12 does, is read while the game runs and is kept at
+    the next start: the launcher's switch turns Lumenveil off and on at once.
+  - The release ships `Lumenveil\settings\schema.json` and `presets.json`: every setting with its label, help, range
+    and shipped value, and the Performance, Balanced and Ultra presets, for the launcher's Graphics tab.
+
 ## 0.6.2 (2026-10-25)
 
 - Installing is: unzip anywhere, double-click `Lordaeron-Play.cmd`.

@@ -2814,6 +2814,40 @@ void CheckNewIniKeysAreRead(const std::wstring& outDir)
     Check(saved && store.Get().shaftGlare == 0.4f, "sun glare: the INI key ShaftGlare is read");
 }
 
+void CheckPlainGameKey(const std::wstring& outDir, const std::wstring& shippedIni)
+{
+    const std::wstring ini = FullPath(outDir + L"\\plain-game.ini");
+    auto write = [&](const char* text) {
+        HANDLE file = CreateFileW(ini.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        DWORD written = 0;
+        const bool ok = file != INVALID_HANDLE_VALUE &&
+                        WriteFile(file, text, static_cast<DWORD>(std::strlen(text)), &written, nullptr) != FALSE;
+        if (file != INVALID_HANDLE_VALUE)
+            CloseHandle(file);
+        Sleep(30);
+        return ok;
+    };
+    bool saved = write("[CoAVolFog]\r\nPlainGame=1\r\nDensity=1\r\n");
+    ConfigStore store;
+    store.Load(NarrowPath(ini));
+    const bool atStart = store.PlainGame();
+    saved = write("[CoAVolFog]\r\nPlainGame=0\r\nDensity=1\r\n") && saved;
+    store.ReloadIfChanged();
+    const bool afterOff = store.PlainGame();
+    store.SetPlainGame(true); // Ctrl+F12
+    saved = write("[CoAVolFog]\r\nPlainGame=0\r\nDensity=0.5\r\n") && saved;
+    store.ReloadIfChanged();
+    const bool keyKept = store.PlainGame();
+    ConfigStore shipped;
+    shipped.Load(NarrowPath(shippedIni));
+    std::printf("     PlainGame=1 at start: plain %d; set to 0 live: plain %d; Ctrl+F12 then another change: plain %d; "
+                "shipped: plain %d\n",
+                atStart ? 1 : 0, afterOff ? 1 : 0, keyKept ? 1 : 0, shipped.PlainGame() ? 1 : 0);
+    Check(saved && atStart && !afterOff && keyKept && !shipped.PlainGame(),
+          "plain game: the INI key PlainGame shows the plain game at start and switches it live when it changes, "
+          "leaves Ctrl+F12 alone otherwise, and is off in the shipped INI");
+}
+
 void CheckWaterMemoryKey(const std::wstring& outDir, const std::wstring& shippedIni)
 {
     const std::wstring ini = FullPath(outDir + L"\\water-memory.ini");
@@ -33516,6 +33550,7 @@ int Run(const std::wstring& outDir, const std::string& dataPath, const std::wstr
     CheckNightLightDefaults(FullPath(iniPath));
     CheckNewIniKeysAreRead(outDir);
     CheckWaterMemoryKey(outDir, FullPath(iniPath));
+    CheckPlainGameKey(outDir, FullPath(iniPath));
     CheckLanternKeys(outDir, FullPath(iniPath));
     CheckSpots(outDir, FullPath(iniPath));
     CheckEffectLightKey(outDir, FullPath(iniPath));

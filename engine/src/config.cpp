@@ -970,6 +970,9 @@ void ConfigStore::Load(const std::string& path)
     m_path = path;
     m_stamp = FileStamp(path);
     Read();
+    m_filePlain = m_config.plainGameKept;
+    m_plainGame = m_filePlain;
+    Recompose();
 }
 
 void ConfigStore::Upgrade(const std::string& path)
@@ -1015,6 +1018,13 @@ bool ConfigStore::ReloadIfChanged()
         return false;
     m_stamp = stamp;
     ReadKeepingStartupSwitches();
+    // the launcher's switch: a change of PlainGame in the file does what Ctrl+F12 does; Ctrl+F12 stays free otherwise
+    if (m_config.plainGameKept != m_filePlain)
+    {
+        m_filePlain = m_config.plainGameKept;
+        SetPlainGame(m_filePlain);
+        VF_LOG_INFO("config: PlainGame=%d, the %s is shown", m_filePlain ? 1 : 0, m_filePlain ? "plain game" : "mod");
+    }
     VF_LOG_INFO("config reloaded: density=%.2f zones=%s ceiling=%.0f haze=%.2f ground=%.2f far=%.2f aerial=%.2f "
                 "stockfog=%d sun=%.2f "
                 "rays=%.2f glow=%d farclipmax=%.0f quality=%d debug=%d colour=%.2f/%.2f/%.2f/%.2f balance=%.2f "
@@ -1080,6 +1090,7 @@ void ConfigStore::Apply(const Config& edited)
     Config c = edited;
     c.enable = m_config.enable;
     c.hooks = m_config.hooks;
+    c.plainGameKept = m_config.plainGameKept;
     c.overlay = m_config.overlay;
     c.overlayKey = m_config.overlayKey;
     c.toggleKey = m_config.toggleKey;
@@ -1250,6 +1261,7 @@ Config ConfigStore::ReadFile() const
     Config c;
     const std::string& p = m_path;
     c.enable = ReadInt(p, "Enable", 1, 0, 1) != 0;
+    c.plainGameKept = ReadInt(p, "PlainGame", 0, 0, 1) != 0;
     c.hooks = ReadInt(p, "EngineHooks", 1, 0, 1) != 0;
     c.overlay = ReadInt(p, "Overlay", 1, 0, 1) != 0;
     c.overlayKey = ReadHotkey(p, "OverlayKey", c.overlayKey);
