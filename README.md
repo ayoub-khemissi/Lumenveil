@@ -194,8 +194,8 @@ Please don't attach game files, or data made from them, to issues or pull reques
 ## Credits
 
 Lumenveil is made by the **Lumenveil authors**: [github.com/lumenveil/Lumenveil](https://github.com/lumenveil/Lumenveil).
-This fork for the Lordaeron server is kept at [github.com/ayoub-khemissi/Lumenveil](https://github.com/ayoub-khemissi/Lumenveil),
-and its releases are built there.
+This is the Lordaeron server's fork: its builds are made by this repository's workflows, and each one's source is
+published beside it ([lordaeron.eu/launcher](https://lordaeron.eu/launcher)).
 
 Lumenveil is built on **CoAVolFog** by jealous-sound, the volumetric fog renderer for the 3.3.5a client, released under
 the GNU GPL v2. The night lights, water, relief, wet surfaces, regions and much more were added on top of it;

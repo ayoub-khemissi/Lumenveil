@@ -21,7 +21,7 @@ BEGIN
             VALUE "OriginalFilename", "@VF_FILE_NAME@"
             VALUE "ProductName", "Lumenveil"
             VALUE "ProductVersion", "@VF_VERSION@"
-            VALUE "Comments", "Open source: https://github.com/ayoub-khemissi/Lumenveil, a fork of https://github.com/lumenveil/Lumenveil"
+            VALUE "Comments", "Lordaeron's build of Lumenveil (https://github.com/lumenveil/Lumenveil); its source: https://lordaeron.eu/launcher"
         END
     END
     BLOCK "VarFileInfo"

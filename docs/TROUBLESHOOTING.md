@@ -20,7 +20,7 @@ To check a file you downloaded:
 
 - Compare its SHA-256 with `SHA256SUMS.txt` on the release page. In PowerShell: `Get-FileHash Lumenveil-0.5.3.zip`.
 - With the [GitHub CLI](https://cli.github.com/):
-  `gh attestation verify Lumenveil-0.5.3.zip --repo ayoub-khemissi/Lumenveil`. It shows that GitHub built the file from
+  `gh attestation verify Lumenveil-0.5.3.zip --repo <owner>/Lumenveil` (this repository). It shows that GitHub built the file from
   this repository's source at that release's tag. It works for `version.dll`, `CoAVolFog.dll` and
   `Lumenveil\lamp_extract.exe` from the zip too.
 - Or build Lumenveil yourself from the source: [BUILDING.md](BUILDING.md).

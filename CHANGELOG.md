@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2 (2026-11-06)
+
+- The credits and the file properties point to lordaeron.eu for this build's source, published beside each build.
+
 ## 0.7.1 (2026-11-06)
 
 - The Lordaeron launcher's automatic login: when the launcher starts the game with a one-time ticket, Lumenveil logs in

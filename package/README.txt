@@ -28,15 +28,14 @@ WHEN SOMETHING GOES WRONG
 
 ANTIVIRUS
   Some antivirus programs warn about new DLLs that a game loads from its own folder, as it loads version.dll. To
-  check the files, compare them with SHA256SUMS.txt on the release page, or run
-  "gh attestation verify <file> --repo ayoub-khemissi/Lumenveil" with the GitHub CLI: it shows that GitHub built
-  the file from the project's source. Report a false positive to your antivirus vendor; don't turn your antivirus off.
+  check the files, compare them with SHA256SUMS.txt, published with each build (the Lordaeron launcher checks every
+  file's SHA-256 itself before installing it). Report a false positive to your antivirus vendor; don't turn your antivirus off.
 
 CREDITS
   Lumenveil is made by the Lumenveil authors: https://github.com/lumenveil/Lumenveil. It is built on CoAVolFog by
   jealous-sound (https://github.com/jealous-sound/coa-vfog), with lamp rules from Everwood, Dear ImGui, libmpq, zlib
-  and bzip2 (THIRD-PARTY-NOTICES.txt). This build is Lordaeron's fork; its source and its changes:
-  https://github.com/ayoub-khemissi/Lumenveil.
+  and bzip2 (THIRD-PARTY-NOTICES.txt). This build is Lordaeron's fork; its source, with its changes, is
+  published beside each build: https://lordaeron.eu/launcher.
 
 LEGAL
   Lumenveil is free, non-commercial software under the GNU General Public License v2 (LICENSE.txt). It contains no

@@ -70,7 +70,7 @@ To run it on DXVK, copy DXVK's 32-bit `d3d9.dll` next to `vfog_harness.exe`.
 A tag `v<version>` runs [.github/workflows/release.yml](../.github/workflows/release.yml) on GitHub's servers: it
 checks that the tag matches the top entry of `CHANGELOG.md`, runs `Build-Release.ps1 -CpuTestsOnly` and the comment
 check, has GitHub sign a provenance record of the zip and of each program in it, and publishes the release with
-`SHA256SUMS.txt`. `gh attestation verify <file> --repo ayoub-khemissi/Lumenveil` checks a file against that record.
+`SHA256SUMS.txt`. `gh attestation verify <file> --repo <owner>/Lumenveil` (this repository) checks a file against that record.
 
 ## Code rules
 
