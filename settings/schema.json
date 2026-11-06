@@ -1,0 +1,2564 @@
+{
+ "schemaVersion": 1,
+ "lumenveil": "0.6.2",
+ "essentials": [
+  "Quality",
+  "Density",
+  "Shafts",
+  "LampLight",
+  "LampFog",
+  "NightDarkness",
+  "Lantern",
+  "Relief",
+  "WaterReflect",
+  "WetSurfaces",
+  "FarClipMax",
+  "Saturation"
+ ],
+ "sections": [
+  {
+   "id": "quality",
+   "title": "Quality",
+   "settings": [
+    "Quality",
+    "Temporal"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "density",
+   "title": "Density",
+   "settings": [
+    "Density",
+    "FogCeiling",
+    "Haze",
+    "GroundFog",
+    "FarFog",
+    "FarFogStretch",
+    "AerialPerspective",
+    "StockFog",
+    "DataMode",
+    "MaxDistance"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "light",
+   "title": "Light",
+   "settings": [
+    "SunScatter",
+    "Ambient",
+    "Exposure",
+    "ClassicExposure",
+    "ColorSpace",
+    "LightShafts",
+    "TerrainShadows",
+    "SurfaceShadows",
+    "LowSunLight",
+    "GodRays",
+    "GlowCompensation"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "colour",
+   "title": "Colour",
+   "settings": [
+    "LightSaturation",
+    "HazeSaturation",
+    "Saturation",
+    "SkySaturation",
+    "Temperature",
+    "Tint",
+    "SkyTemperature",
+    "SkyTint",
+    "LightBalance",
+    "LandBrightness",
+    "SkyBrightness",
+    "SkyHaze",
+    "SkyHazeGlow",
+    "SkyHazeZenith",
+    "SkyHazeGlowGrade",
+    "HazeFromSky",
+    "HazeSkyLevel"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "shafts",
+   "title": "Sun and moon shafts",
+   "settings": [
+    "Shafts",
+    "ShaftFocus",
+    "LowSunShafts",
+    "ShaftGlare",
+    "MoonShafts",
+    "MoonShaftFocus",
+    "ShaftHaze",
+    "ShaftRange",
+    "ShaftMemory",
+    "ShaftLength",
+    "ShaftDepth"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "drift",
+   "title": "Drift and mist",
+   "settings": [
+    "Drift",
+    "DriftSize",
+    "DriftDetail",
+    "DriftSwirl",
+    "Banks",
+    "BankCover",
+    "BankHeight",
+    "BankPool",
+    "BankShadow",
+    "WindSpeed",
+    "StormWind",
+    "WindDirection",
+    "MorningMist",
+    "MistHeight",
+    "EveningHaze"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "weather",
+   "title": "Weather",
+   "settings": [
+    "WeatherFog",
+    "WeatherShafts",
+    "WeatherTint",
+    "WeatherSky",
+    "RainInFront"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "openLand",
+   "title": "Open land",
+   "settings": [
+    "DustHaze",
+    "HumidHaze",
+    "HorizonFog",
+    "CloudShadows",
+    "CloudCover",
+    "CloudSize"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "night",
+   "title": "Dusk and night",
+   "settings": [
+    "Twilight",
+    "SkyboxMoons",
+    "SunAndMoon",
+    "LightGlow",
+    "GlowThreshold",
+    "LampFog",
+    "LampCount",
+    "LampFlicker",
+    "FireStrength",
+    "FarLights",
+    "LampIndoors",
+    "LampLight",
+    "LampDayLight",
+    "WindowLight",
+    "EffectLight",
+    "ObjectLamps",
+    "CorpseLight",
+    "LampShadows",
+    "CarriedShadows",
+    "NightDarkness"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "lantern",
+   "title": "Belt lantern",
+   "settings": [
+    "Lantern",
+    "LanternLight",
+    "LanternHalo",
+    "LanternSwing"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "relief",
+   "title": "Ground relief",
+   "settings": [
+    "Relief",
+    "ReliefModels",
+    "ReliefDepth",
+    "ReliefLight",
+    "ReliefShadows",
+    "ReliefDistance",
+    "ReliefRoads",
+    "ReliefRock",
+    "ReliefDirt",
+    "ReliefSand",
+    "ReliefSnow",
+    "ReliefGrass",
+    "ReliefWalls",
+    "ReliefRoofs",
+    "ReliefWood",
+    "ReliefMetal",
+    "ReliefBark",
+    "ReliefLeaves",
+    "ReliefCreatures",
+    "ReliefCharacters",
+    "ReliefArmour",
+    "ReliefProps"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "water",
+   "title": "Water",
+   "settings": [
+    "WaterReflect",
+    "WaterGlitter",
+    "WaterClarity",
+    "WaterSmooth",
+    "WaterBump",
+    "WaterFoam",
+    "WaterWaves",
+    "WaterRain",
+    "WaterMemory"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "wet",
+   "title": "Wet and shiny surfaces",
+   "settings": [
+    "SurfaceSheen",
+    "WetSurfaces",
+    "Puddles",
+    "TerrainMaterials"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "world",
+   "title": "World",
+   "settings": [
+    "Underwater",
+    "LiquidDepth",
+    "FarClipMax"
+   ],
+   "level": "advanced"
+  },
+  {
+   "id": "debug",
+   "title": "Debug",
+   "settings": [
+    "DebugView",
+    "SunMarker",
+    "ClientShadowMaps",
+    "LogLevel",
+    "DrawLog",
+    "PerfLog",
+    "DrawLogVertexConstants",
+    "DrawLogPixelConstants"
+   ],
+   "level": "expert"
+  },
+  {
+   "id": "engine",
+   "title": "Engine",
+   "settings": [
+    "Enable",
+    "EngineHooks",
+    "Overlay"
+   ],
+   "level": "expert"
+  },
+  {
+   "id": "hotkeys",
+   "title": "Keys",
+   "settings": [
+    "OverlayKey",
+    "ToggleKey",
+    "LanternKey",
+    "ReliefKey",
+    "SpotKey",
+    "RegionKey",
+    "DrawLogKey"
+   ],
+   "level": "expert"
+  },
+  {
+   "id": "zones",
+   "title": "Zones",
+   "settings": [
+    "ZoneDensity",
+    "DryZones",
+    "GreenZones"
+   ],
+   "level": "expert"
+  }
+ ],
+ "settings": {
+  "Quality": {
+   "section": "quality",
+   "label": "Quality",
+   "type": "choice",
+   "help": "Resolution and ray-march steps of the fog pass",
+   "options": [
+    {
+     "value": 1,
+     "label": "Low: quarter resolution, 16 steps"
+    },
+    {
+     "value": 2,
+     "label": "Medium: half resolution, 24 steps"
+    },
+    {
+     "value": 3,
+     "label": "High: half resolution, 32 steps"
+    }
+   ],
+   "default": 3,
+   "globalOnly": true,
+   "level": "essential"
+  },
+  "Temporal": {
+   "section": "quality",
+   "label": "Temporal filter",
+   "type": "float",
+   "min": 0.0,
+   "max": 0.97,
+   "decimals": 2,
+   "help": "History weight of the temporal filter, 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 0.97,
+   "default": 0.8,
+   "level": "advanced"
+  },
+  "Density": {
+   "section": "density",
+   "label": "Density",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Global density multiplier",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 0.5,
+   "level": "essential"
+  },
+  "FogCeiling": {
+   "section": "density",
+   "label": "Fog ceiling",
+   "type": "float",
+   "min": 0.0,
+   "max": 300.0,
+   "decimals": 0,
+   "help": "While you fly or stand well above the ground, the fog keeps to this many yards over the ground (fading over half as much again), so it lies in valleys and among the trees and the air above it is clear; the sunlit air still shows the shafts. It comes in as the camera rises from 1.5 to 3 times this height over the ground under it, so nothing changes on foot. 0 = off",
+   "unit": "yd",
+   "engineMin": 0.0,
+   "engineMax": 300.0,
+   "default": 200.0,
+   "level": "advanced"
+  },
+  "Haze": {
+   "section": "density",
+   "label": "Haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Distance haze where no Classic data exists",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.19,
+   "level": "advanced"
+  },
+  "GroundFog": {
+   "section": "density",
+   "label": "Ground fog",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Low ground mist where no Classic data exists",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "FarFog": {
+   "section": "density",
+   "label": "Distance fog",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "The distance fog that replaces the stock fog",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.04,
+   "level": "advanced"
+  },
+  "FarFogStretch": {
+   "section": "density",
+   "label": "Fog follows the view",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "1: with the view distance lifted past the client's cap, the distance fog reaches as much further as the view does, so land past the zone's fog end is not drawn as a flat fog-coloured shape. 0: the fog ends at the zone's fog distance in yards",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "AerialPerspective": {
+   "section": "density",
+   "label": "Aerial perspective",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "1: distant land fades into the zone's own fog colour, the sky at the horizon, and the sun brightens the haze only around itself. 0: the haze is lit by the sun from every side, which turns distant mountains pale",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "StockFog": {
+   "section": "density",
+   "label": "Replace the stock fog",
+   "type": "bool",
+   "help": "On: the volumetric distance fog replaces the client's linear fog. Off: keep the stock fog",
+   "default": true,
+   "level": "advanced"
+  },
+  "DataMode": {
+   "section": "density",
+   "label": "Classic fog layers",
+   "type": "bool",
+   "help": "Use the Classic client's fog layers where its lights cover the map. Off: derived layers everywhere",
+   "default": true,
+   "level": "advanced"
+  },
+  "MaxDistance": {
+   "section": "density",
+   "label": "Fog range",
+   "type": "float",
+   "min": 200.0,
+   "max": 5000.0,
+   "decimals": 0,
+   "help": "How far sky rays are integrated and the scale of the Classic distance curves",
+   "unit": "yd",
+   "engineMin": 200.0,
+   "engineMax": 5000.0,
+   "default": 5000.0,
+   "level": "advanced"
+  },
+  "SunScatter": {
+   "section": "light",
+   "label": "Sun scatter",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "In-scattered sun or moon light: the halo and the shafts",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.75,
+   "level": "advanced"
+  },
+  "Ambient": {
+   "section": "light",
+   "label": "Ambient",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Ambient fog brightness",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "Exposure": {
+   "section": "light",
+   "label": "Exposure",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Brightness of the layers used where no Classic data exists",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 0.52,
+   "level": "advanced"
+  },
+  "ClassicExposure": {
+   "section": "light",
+   "label": "Classic exposure",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Brightness of the Classic layers, 1 = as authored",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "ColorSpace": {
+   "section": "light",
+   "label": "Linear light",
+   "type": "bool",
+   "help": "Scatter and blend in linear light like the modern client, with a soft highlight roll-off. Off: gamma",
+   "default": true,
+   "level": "advanced"
+  },
+  "LightShafts": {
+   "section": "light",
+   "label": "Light shafts",
+   "type": "bool",
+   "help": "Shadowed in-scattering: light shafts through trees, buildings and terrain",
+   "default": true,
+   "level": "advanced"
+  },
+  "TerrainShadows": {
+   "section": "light",
+   "label": "Terrain shadows",
+   "type": "bool",
+   "help": "Mountains and buildings around you keep the sun and moon out of the fog in their shadow, whether or not they are on screen",
+   "default": true,
+   "level": "advanced"
+  },
+  "SurfaceShadows": {
+   "section": "light",
+   "label": "Surface shadows",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Shadows of mountains and buildings on the ground, walls and characters, from the same height map, whether or not the mountain is on screen. 1 = the sun's whole share of the light is taken away, 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.75,
+   "level": "advanced"
+  },
+  "LowSunLight": {
+   "section": "light",
+   "label": "Low sun light",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "While the sun is low, slopes and walls facing it, where it reaches, get a warm lift in its colour, so the light lands on the far mountains at dawn and dusk. 1 = 35% brighter, 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "GodRays": {
+   "section": "light",
+   "label": "God rays",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Radial rays from the bright sky around the sun, 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "GlowCompensation": {
+   "section": "light",
+   "label": "Glow compensation",
+   "type": "bool",
+   "help": "Pre-compensate the fog for the client's full-screen glow, which otherwise bleaches bright fog around the sun to white",
+   "default": true,
+   "level": "advanced"
+  },
+  "LightSaturation": {
+   "section": "colour",
+   "label": "Light saturation",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.5,
+   "decimals": 2,
+   "help": "Colour of the sun's or moon's light in the fog, the shafts and the haze, at the same brightness: 1 = the client's, 0 = white. The sky-lit part of the fog keeps its colour",
+   "engineMin": 0.0,
+   "engineMax": 1.5,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "HazeSaturation": {
+   "section": "colour",
+   "label": "Haze saturation",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Colour of the sky-lit part of the fog and the haze, the zone's fog colour, at the same brightness: 1 = the client's, 0 = grey, 2 = twice as strong",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "Saturation": {
+   "section": "colour",
+   "label": "Saturation",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Colour of the whole picture at the same brightness: 1 = unchanged, 0 = grey (needs Linear light)",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.95,
+   "level": "essential"
+  },
+  "SkySaturation": {
+   "section": "colour",
+   "label": "Sky saturation",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Colour of the sky alone, on top of Saturation: 1 = as the rest of the picture, 0 = grey",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "Temperature": {
+   "section": "colour",
+   "label": "Temperature",
+   "type": "float",
+   "min": -1.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "White balance of the whole picture at the same brightness: above 0 warmer (amber), below 0 cooler (blue); 1 = red twice blue (needs Linear light)",
+   "engineMin": -1.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "Tint": {
+   "section": "colour",
+   "label": "Tint",
+   "type": "float",
+   "min": -1.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "White balance of the whole picture at the same brightness: above 0 toward magenta, below 0 toward green (needs Linear light)",
+   "engineMin": -1.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "SkyTemperature": {
+   "section": "colour",
+   "label": "Sky temperature",
+   "type": "float",
+   "min": -1.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Temperature of the sky alone, on top of Temperature: 0 = as the rest of the picture",
+   "engineMin": -1.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "SkyTint": {
+   "section": "colour",
+   "label": "Sky tint",
+   "type": "float",
+   "min": -1.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Tint of the sky alone, on top of Tint: 0 = as the rest of the picture",
+   "engineMin": -1.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "LightBalance": {
+   "section": "colour",
+   "label": "Light balance",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "White balance of the land and everything on it against the client's sun and ambient light: 0 = the client's colour, 1 = a neutral light at the same brightness, 2 = past it. Not the sky, not indoors (needs Linear light)",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "LandBrightness": {
+   "section": "colour",
+   "label": "Land brightness",
+   "type": "float",
+   "min": 0.25,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Brightness of the land and everything on it, not the sky: 1 = the client's (needs Linear light)",
+   "engineMin": 0.25,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "SkyBrightness": {
+   "section": "colour",
+   "label": "Sky brightness",
+   "type": "float",
+   "min": 0.25,
+   "max": 8.0,
+   "decimals": 2,
+   "help": "Brightness of the sky alone, in linear light: 1 = the client's, 2 = twice as bright (needs Linear light)",
+   "scale": "log",
+   "engineMin": 0.25,
+   "engineMax": 8.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "SkyHaze": {
+   "section": "colour",
+   "label": "Sky haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Share of the clear sky behind a haze in the horizon's colour, as rain covers it with Overcast sky: 0 = the client's sky, 1 = all haze",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "SkyHazeGlow": {
+   "section": "colour",
+   "label": "Sun in the haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Brightness of the sun's disc and its halo in the sky haze, in the sun's colour",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "SkyHazeZenith": {
+   "section": "colour",
+   "label": "Haze overhead",
+   "type": "float",
+   "min": 0.02,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Brightness of the sky haze straight overhead against the horizon, in linear light: 1 = even, 0.1 = a bright band at the horizon under a dark sky",
+   "scale": "log",
+   "engineMin": 0.02,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "SkyHazeGlowGrade": {
+   "section": "colour",
+   "label": "Sun takes the sky's colour",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "How much of the sky's own colour, brightness and saturation the sun's glow in the haze takes: 1 = all of it, 0 = it keeps the sun's colour under a sky turned cool or grey",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "HazeFromSky": {
+   "section": "colour",
+   "label": "Haze takes the sky's colour",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "How far the haze's sky-lit light in front of the land takes the colour of the sky at the horizon, as drawn: 1 = all the way (a bright sky gives bright distant hills, a dark one dark ones), 0 = the haze's own colour. The sky and the sun's light in the haze are unchanged",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "HazeSkyLevel": {
+   "section": "colour",
+   "label": "Haze against the sky",
+   "type": "float",
+   "min": 0.25,
+   "max": 1.5,
+   "decimals": 2,
+   "help": "The brightness of that haze against the sky at the horizon, as displayed: 0.85 = a bit darker, 1 = as bright. Land seen through the haze keeps some of its own light, so snow can still stand out brighter than the sky",
+   "engineMin": 0.25,
+   "engineMax": 1.5,
+   "default": 0.85,
+   "level": "advanced"
+  },
+  "Shafts": {
+   "section": "shafts",
+   "label": "Shafts",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Extra sunlight scattered in the fog and the air wherever the sun reaches, traced through trees, buildings and terrain whether or not the sun is on screen. 0 = only the fog's own shadowed light",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 0.8,
+   "level": "essential"
+  },
+  "ShaftFocus": {
+   "section": "shafts",
+   "label": "Focus",
+   "type": "float",
+   "min": 0.0,
+   "max": 0.95,
+   "decimals": 2,
+   "help": "0 = shafts as bright from every side; higher = brighter looking toward the sun, fainter looking away",
+   "engineMin": 0.0,
+   "engineMax": 0.95,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 0.71,
+   "level": "advanced"
+  },
+  "LowSunShafts": {
+   "section": "shafts",
+   "label": "Low sun",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "Stronger shafts while the sun is low: 1 = twice as strong at dawn and dusk, fading out by 30 degrees up; 0 = the same all day",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "ShaftGlare": {
+   "section": "shafts",
+   "label": "Sun glare",
+   "type": "float",
+   "min": 0.02,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "How bright the shafts' light grows before it grows only slowly: lower keeps the glow around a low sun small while beams through trees and gaps keep their strength; 4 = almost no limit",
+   "scale": "log",
+   "engineMin": 0.02,
+   "engineMax": 4.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 0.03,
+   "level": "advanced"
+  },
+  "MoonShafts": {
+   "section": "shafts",
+   "label": "Moon shafts",
+   "type": "float",
+   "min": 0.0,
+   "max": 8.0,
+   "decimals": 2,
+   "help": "The same beams from the moon at night. Moonlight is dim and the moon stands high, so they need more strength than the sun's. 0 = only the fog's own shadowed light",
+   "engineMin": 0.0,
+   "engineMax": 8.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 2.64,
+   "level": "advanced"
+  },
+  "MoonShaftFocus": {
+   "section": "shafts",
+   "label": "Moon focus",
+   "type": "float",
+   "min": 0.0,
+   "max": 0.95,
+   "decimals": 2,
+   "help": "Focus of the moon's shafts. The moon stands high, so a low focus keeps them visible when looking level",
+   "engineMin": 0.0,
+   "engineMax": 0.95,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 0.51,
+   "level": "advanced"
+  },
+  "ShaftHaze": {
+   "section": "shafts",
+   "label": "Clear air",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Air lit by the shafts, so they show where the fog is thin",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 1.23,
+   "level": "advanced"
+  },
+  "ShaftRange": {
+   "section": "shafts",
+   "label": "Range",
+   "type": "float",
+   "min": 30.0,
+   "max": 600.0,
+   "decimals": 0,
+   "help": "How far from the camera shafts are traced",
+   "unit": "yd",
+   "engineMin": 30.0,
+   "engineMax": 600.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": 235.0,
+   "level": "advanced"
+  },
+  "ShaftMemory": {
+   "section": "shafts",
+   "label": "Remember what was seen",
+   "type": "bool",
+   "help": "Trees and buildings shade the shafts from a shadow map, seen from the sun, of everything the camera has seen so far. It stays fixed in the world, so turning the camera does not change the shafts, and gaps between leaves stay open. Off = only what is on screen, with a guess past its edges",
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    }
+   ],
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "ShaftLength": {
+   "section": "shafts",
+   "label": "Length",
+   "type": "float",
+   "min": 10.0,
+   "max": 300.0,
+   "decimals": 0,
+   "help": "How far toward the sun each point looks for trees and buildings that shade it (only without the memory, which looks all the way)",
+   "unit": "yd",
+   "engineMin": 10.0,
+   "engineMax": 300.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    },
+    {
+     "key": "ShaftMemory",
+     "is": false
+    }
+   ],
+   "default": 300.0,
+   "level": "advanced"
+  },
+  "ShaftDepth": {
+   "section": "shafts",
+   "label": "Occluder depth",
+   "type": "float",
+   "min": 0.1,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "How deep trees and buildings are taken to be behind their visible face, per yard of their distance (only without the memory)",
+   "engineMin": 0.1,
+   "engineMax": 4.0,
+   "enabledWhen": [
+    {
+     "key": "LightShafts",
+     "is": true
+    },
+    {
+     "key": "ShaftMemory",
+     "is": false
+    }
+   ],
+   "default": 1.92,
+   "level": "advanced"
+  },
+  "Drift": {
+   "section": "drift",
+   "label": "Drift",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How patchy the fog is. The patches drift with the wind and the shafts brighten in the thick ones. 0 = even fog, as before",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.8,
+   "level": "advanced"
+  },
+  "DriftSize": {
+   "section": "drift",
+   "label": "Patch size",
+   "type": "float",
+   "min": 10.0,
+   "max": 300.0,
+   "decimals": 0,
+   "help": "Size of the drifting fog patches",
+   "unit": "yd",
+   "engineMin": 10.0,
+   "engineMax": 300.0,
+   "default": 60.0,
+   "level": "advanced"
+  },
+  "DriftDetail": {
+   "section": "drift",
+   "label": "Smoke",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Share of fine, wispy smoke in the drift, a tenth of the patch size and smaller. 0 = only the large patches",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.65,
+   "level": "advanced"
+  },
+  "DriftSwirl": {
+   "section": "drift",
+   "label": "Swirl",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "How far the large patches twist and stretch the smoke. 0 = straight wisps",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "Banks": {
+   "section": "drift",
+   "label": "Fog banks",
+   "type": "choice",
+   "help": "Gathers the fog into separate banks, as big as the patches, that lie on the ground, fill valleys and leave clear air between them, instead of even layers at your own height",
+   "options": [
+    {
+     "value": 0,
+     "label": "Off: even layers"
+    },
+    {
+     "value": 1,
+     "label": "Everywhere, all day"
+    },
+    {
+     "value": 2,
+     "label": "Valleys and water at dawn and dusk"
+    }
+   ],
+   "default": 1,
+   "level": "advanced"
+  },
+  "BankCover": {
+   "section": "drift",
+   "label": "Bank cover",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Share of the ground under a fog bank; the banks are denser where they are fewer, so the fog as a whole keeps its amount. 1 = one even blanket",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "enabledWhen": [
+    {
+     "key": "Banks",
+     "not": 0
+    }
+   ],
+   "default": 0.45,
+   "level": "advanced"
+  },
+  "BankHeight": {
+   "section": "drift",
+   "label": "Bank height",
+   "type": "float",
+   "min": 5.0,
+   "max": 300.0,
+   "decimals": 0,
+   "help": "How high the banks reach above the ground under them",
+   "unit": "yd",
+   "engineMin": 5.0,
+   "engineMax": 300.0,
+   "enabledWhen": [
+    {
+     "key": "Banks",
+     "not": 0
+    }
+   ],
+   "default": 60.0,
+   "level": "advanced"
+  },
+  "BankPool": {
+   "section": "drift",
+   "label": "Valleys",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "How much the fog gathers in valleys and over lakes and leaves ridges and hilltops clear. 0 = the same on every slope",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Banks",
+     "not": 0
+    }
+   ],
+   "default": 1.5,
+   "level": "advanced"
+  },
+  "BankShadow": {
+   "section": "drift",
+   "label": "Bank shade",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "How much a bank shades its own inside from the sun or moon, so it has a lit side and a dark one",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Banks",
+     "not": 0
+    }
+   ],
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "WindSpeed": {
+   "section": "drift",
+   "label": "Wind",
+   "type": "float",
+   "min": 0.0,
+   "max": 10.0,
+   "decimals": 1,
+   "help": "Drift speed in clear weather",
+   "unit": "yd/s",
+   "engineMin": 0.0,
+   "engineMax": 10.0,
+   "default": 2.0,
+   "level": "advanced"
+  },
+  "StormWind": {
+   "section": "drift",
+   "label": "Storm wind",
+   "type": "float",
+   "min": 0.0,
+   "max": 20.0,
+   "decimals": 1,
+   "help": "Drift speed in full rain, snow or sandstorm; weaker weather lies in between",
+   "unit": "yd/s",
+   "engineMin": 0.0,
+   "engineMax": 20.0,
+   "default": 7.0,
+   "level": "advanced"
+  },
+  "WindDirection": {
+   "section": "drift",
+   "label": "Wind direction",
+   "type": "float",
+   "min": 0.0,
+   "max": 360.0,
+   "decimals": 0,
+   "help": "Where the wind blows to: 0 north, 90 east, 180 south, 270 west",
+   "unit": "°",
+   "engineMin": 0.0,
+   "engineMax": 360.0,
+   "default": 60.0,
+   "level": "advanced"
+  },
+  "MorningMist": {
+   "section": "drift",
+   "label": "Morning mist",
+   "type": "float",
+   "min": 0.0,
+   "max": 8.0,
+   "decimals": 2,
+   "help": "Extra fog in low ground at dawn (full 05:00 to 07:30, gone by 10:00). 2 = three times the fog near the ground; zones with little fog of their own get up to eight times more",
+   "engineMin": 0.0,
+   "engineMax": 8.0,
+   "default": 3.0,
+   "level": "advanced"
+  },
+  "MistHeight": {
+   "section": "drift",
+   "label": "Mist height",
+   "type": "float",
+   "min": 2.0,
+   "max": 60.0,
+   "decimals": 0,
+   "help": "How far above your ground level the morning mist reaches",
+   "unit": "yd",
+   "engineMin": 2.0,
+   "engineMax": 60.0,
+   "default": 12.0,
+   "level": "advanced"
+  },
+  "EveningHaze": {
+   "section": "drift",
+   "label": "Evening haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Extra fog everywhere in the evening (full 20:00 to 22:00, gone by midnight)",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.8,
+   "level": "advanced"
+  },
+  "WeatherFog": {
+   "section": "weather",
+   "label": "Weather fog",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Extra fog in full rain, snow or sandstorm. 1 = twice the fog",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 0.6,
+   "level": "advanced"
+  },
+  "WeatherShafts": {
+   "section": "weather",
+   "label": "Weather shafts",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Share of the shafts left in full weather, as clouds hide the sun",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.35,
+   "level": "advanced"
+  },
+  "WeatherTint": {
+   "section": "weather",
+   "label": "Weather tint",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Fog turns grey in rain, white in snow and sandy in a sandstorm",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "WeatherSky": {
+   "section": "weather",
+   "label": "Weather sky",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "The sky and its clouds turn the colour of the weather's fog, overcast. 1 = 85% in full weather",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "RainInFront": {
+   "section": "weather",
+   "label": "Rain in front",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Rain, snow and sand stay in front of the fog and the overcast sky, as near as they fall: 1 = fogged as if 25 yd away, 0 = as if as far as what is behind them",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "DustHaze": {
+   "section": "openLand",
+   "label": "Dust haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "Warm, sunlit dust in the air of dry zones, thickest in the afternoon and in wind. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "HumidHaze": {
+   "section": "openLand",
+   "label": "Humid haze",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "decimals": 2,
+   "help": "A soft, cool haze over green open land, thickest in the morning. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "HorizonFog": {
+   "section": "openLand",
+   "label": "Horizon fog",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "In dry and green zones, far land fades gradually into the colour of the sky at the horizon. 0 = the zone's own distance fog",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "CloudShadows": {
+   "section": "openLand",
+   "label": "Cloud shadows",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Shadows of clouds drifting with the wind over dry and green zones, on the ground and in the haze; with a low sun they give beams between the clouds. 1 = a cloud takes the sun's whole share of the light away, 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.6,
+   "level": "advanced"
+  },
+  "CloudCover": {
+   "section": "openLand",
+   "label": "Cloud cover",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How much of the sky the clouds cover: 1 = about a quarter in dry zones and nearly half in green ones, at most 90%",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "CloudSize": {
+   "section": "openLand",
+   "label": "Cloud size",
+   "type": "float",
+   "min": 100.0,
+   "max": 2000.0,
+   "decimals": 0,
+   "help": "How wide one cloud is, in yards",
+   "unit": "yd",
+   "engineMin": 100.0,
+   "engineMax": 2000.0,
+   "default": 400.0,
+   "level": "advanced"
+  },
+  "Twilight": {
+   "section": "night",
+   "label": "Twilight",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Blue tint of the fog around sunset and sunrise, while the sun is just below the horizon and the moon is not up",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "SkyboxMoons": {
+   "section": "night",
+   "label": "Skybox moons",
+   "type": "bool",
+   "help": "Draw the moons the HD skyboxes paint on their sky. Off = only the game's own moon shows, the one the moonlight, the moon shafts and the glitter on the water come from",
+   "default": false,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "SunAndMoon": {
+   "section": "night",
+   "label": "Sun and moon over the sky",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "The game's own sun and moon drawn over the sky last, so an HD skybox or the sky haze cannot hide them; land in front still does. 1 = as the client draws them, dimmer in thick fog and rain; 0 = left to the client, under the skybox and the haze",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "LightGlow": {
+   "section": "night",
+   "label": "Light glow",
+   "type": "float",
+   "min": 0.0,
+   "max": 8.0,
+   "decimals": 2,
+   "help": "Lamps, windows and fires glow into the fog at night; the thicker the fog, the larger the halo. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 8.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "GlowThreshold": {
+   "section": "night",
+   "label": "Glow threshold",
+   "type": "float",
+   "min": 0.2,
+   "max": 0.95,
+   "decimals": 2,
+   "help": "How bright a pixel must be to glow; lower = more things glow",
+   "engineMin": 0.2,
+   "engineMax": 0.95,
+   "default": 0.5,
+   "level": "advanced"
+  },
+  "LampFog": {
+   "section": "night",
+   "label": "Lamp halos",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Torches, candles, braziers and lanterns placed in the world glow in the air, more in rain, snow or sand; by day the By day share of it; none in the ghost world. Needs lampdata.bin. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 0.6,
+   "level": "essential"
+  },
+  "LampCount": {
+   "section": "night",
+   "label": "Lamps",
+   "type": "int",
+   "min": 0.0,
+   "max": 128.0,
+   "help": "How many lamps in view glow and light things, brightest first. Lamps reach 800 yd and fade from 650 yd; while halos or far lights show, up to 64 more lamps beyond 80 yd glow without lighting things",
+   "engineMin": 0.0,
+   "engineMax": 128.0,
+   "default": 32,
+   "level": "advanced"
+  },
+  "LampFlicker": {
+   "section": "night",
+   "label": "Flicker",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How much flames flicker; lanterns behind glass stay steady. 0 = steady",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "FireStrength": {
+   "section": "night",
+   "label": "Fires",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Strength of open fires (braziers, bonfires, campfires and hearths), their light and halos, against the other lamps. 1 = as the other lamps",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.8,
+   "level": "advanced"
+  },
+  "FarLights": {
+   "section": "night",
+   "label": "Far lights",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "At night the lamps of towns and camps from 60 yd out show as small points of light, even where their halos are too faint to see, so a town across a valley isn't dark. Hidden lamps show none. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "LampIndoors": {
+   "section": "night",
+   "label": "Indoors",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Strength of lamps inside rooms (inns, houses, halls), and of every lamp while you stand indoors, their light and halos. 1 = as outdoors",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.49,
+   "level": "advanced"
+  },
+  "LampLight": {
+   "section": "night",
+   "label": "Lamp light",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "The same lamps light the ground, walls, plants and characters around them in their own colour, falling off like the game's own lights; by day too, most in shade; none in the ghost world. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 3.0,
+   "level": "essential"
+  },
+  "LampDayLight": {
+   "section": "night",
+   "label": "By day",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Share of the lamps' light and halos by day, when the sun outshines them. 0 = none by day, 1 = as at night",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.11,
+   "level": "advanced"
+  },
+  "WindowLight": {
+   "section": "night",
+   "label": "Window light",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Lit windows cast their light onto the street, walls and characters in front of them, up to 8 windows at a time; none by day and none in the ghost world. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 2.63,
+   "level": "advanced"
+  },
+  "EffectLight": {
+   "section": "night",
+   "label": "Spell light",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Glowing spells, projectiles, enchants and other bright effects on screen light the ground, walls and characters around them in their own colour, up to 6 at a time; the placed lamps' own flames are left to the lamps. In rain or snow only coloured glows count. By day the lamps' By day share; none in the ghost world. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 0.5,
+   "level": "advanced"
+  },
+  "ObjectLamps": {
+   "section": "night",
+   "label": "Game object lamps",
+   "type": "bool",
+   "help": "Campfires, braziers, candles and torches the server places (cooking fires, camps, festival braziers) light and glow like the lamps of the world, where they stand, from the client's own list of objects. Needs lampdata.bin from this version's Lumenveil-Setup.cmd. Off = they only give spell light",
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "CorpseLight": {
+   "section": "night",
+   "label": "Loot sparkle",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Corpses you can loot give a small golden twinkle of light, the nearest 4 within 40 yd, from the client's own list of what is lootable. By day the lamps' By day share; none in the ghost world. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "LampShadows": {
+   "section": "night",
+   "label": "Lamp shadows",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "Things on screen between a lamp and a surface block its light. 0 = no lamp shadows",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.96,
+   "level": "advanced"
+  },
+  "CarriedShadows": {
+   "section": "night",
+   "label": "Carried light shadows",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "How much of the lamp shadows the lights that move with things keep: spells, projectiles, enchants, the loot sparkle and the belt lantern. 0 = they cast no shadows, so no character's shadow swings around with them; placed lamps keep theirs",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "NightDarkness": {
+   "section": "night",
+   "label": "Night darkness",
+   "type": "float",
+   "min": 0.0,
+   "max": 0.9,
+   "decimals": 2,
+   "help": "Darkens the moonlit scene at night outdoors, but not flames, lit windows, lit interiors or what the lamps light, and not while you are indoors. 0 = the game's own night",
+   "engineMin": 0.0,
+   "engineMax": 0.9,
+   "default": 0.8,
+   "level": "essential"
+  },
+  "Lantern": {
+   "section": "lantern",
+   "label": "Lantern",
+   "type": "choice",
+   "help": "A lantern at your belt lights the ground, walls, plants and characters around you, and what stands in its light casts shadows. In the dark it lights by itself at night and indoors (caves, dungeons, buildings) and goes out by day; never while swimming or as a ghost",
+   "options": [
+    {
+     "value": 0,
+     "label": "Off"
+    },
+    {
+     "value": 1,
+     "label": "In the dark"
+    },
+    {
+     "value": 2,
+     "label": "Always"
+    }
+   ],
+   "default": 0,
+   "globalOnly": true,
+   "level": "essential"
+  },
+  "LanternLight": {
+   "section": "lantern",
+   "label": "Lantern light",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "How brightly the lantern lights things around you. 0 = no lantern",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 2.96,
+   "level": "advanced"
+  },
+  "LanternHalo": {
+   "section": "lantern",
+   "label": "Lantern halo",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How strongly the lantern glows in the fog around it, on top of Lamp halos. 0 = no glow",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.3,
+   "level": "advanced"
+  },
+  "LanternSwing": {
+   "section": "lantern",
+   "label": "Swing",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How much the lantern swings on its hook as you walk, run, turn and stop. 0 = it hangs still",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.37,
+   "level": "advanced"
+  },
+  "Relief": {
+   "section": "relief",
+   "label": "Relief",
+   "type": "bool",
+   "help": "Paved roads, tiles, stones and rock on the ground get depth: they shift with the view (parallax occlusion), catch the light on their sunlit side and shade themselves. Needs reliefdata.bin and exterior shadows 3-5 (extShadowQuality)",
+   "default": false,
+   "globalOnly": true,
+   "level": "essential"
+  },
+  "ReliefModels": {
+   "section": "relief",
+   "label": "On models",
+   "type": "bool",
+   "help": "Trees, creatures, characters, armour and props get relief too. Their height maps are made while you play, on a thread of their own, the first time each texture is drawn",
+   "default": false,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "ReliefDepth": {
+   "section": "relief",
+   "label": "Depth",
+   "type": "float",
+   "min": 0.0,
+   "max": 0.75,
+   "decimals": 3,
+   "help": "How deep the relief is at its deepest, for stone and paving; each texture type gets its share of it (Relief by texture type)",
+   "unit": "yd",
+   "engineMin": 0.0,
+   "engineMax": 0.75,
+   "default": 0.138,
+   "level": "advanced"
+  },
+  "ReliefLight": {
+   "section": "relief",
+   "label": "Light",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How strongly the relief shapes the light (its sunlit and shaded sides). 0 = depth only",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.01,
+   "level": "advanced"
+  },
+  "ReliefShadows": {
+   "section": "relief",
+   "label": "Self shadows",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "How dark the shadows are that stones and ridges cast onto their own texture",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "ReliefDistance": {
+   "section": "relief",
+   "label": "Distance",
+   "type": "float",
+   "min": 5.0,
+   "max": 1500.0,
+   "decimals": 0,
+   "help": "Relief is drawn up to this distance and fades out over its last quarter",
+   "unit": "yd",
+   "scale": "log",
+   "engineMin": 5.0,
+   "engineMax": 1500.0,
+   "default": 161.0,
+   "level": "advanced"
+  },
+  "ReliefRoads": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Roads",
+   "help": "Roads, paving, cobbles and paved floors, outdoors and in buildings",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.4,
+   "level": "advanced"
+  },
+  "ReliefRock": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Rock",
+   "help": "Rock, cliffs, gravel, boulders and caves",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.4,
+   "level": "advanced"
+  },
+  "ReliefDirt": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Dirt",
+   "help": "Dirt, mud, soil, ash, and ground of no other type",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 1.1,
+   "level": "advanced"
+  },
+  "ReliefSand": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Sand",
+   "help": "Sand, dunes and beaches",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.2,
+   "level": "advanced"
+  },
+  "ReliefSnow": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Snow",
+   "help": "Snow and ice",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.2,
+   "level": "advanced"
+  },
+  "ReliefGrass": {
+   "section": "relief",
+   "group": "Ground",
+   "label": "Grass",
+   "help": "Grass, moss, fallen leaves and crops on the ground",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.4,
+   "level": "advanced"
+  },
+  "ReliefWalls": {
+   "section": "relief",
+   "group": "Buildings",
+   "label": "Walls",
+   "help": "Walls of stone, brick and plaster, trim, pillars, ceilings and window frames",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.7,
+   "level": "advanced"
+  },
+  "ReliefRoofs": {
+   "section": "relief",
+   "group": "Buildings",
+   "label": "Roofs",
+   "help": "Roofs: shingles, tiles and thatch",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.7,
+   "level": "advanced"
+  },
+  "ReliefWood": {
+   "section": "relief",
+   "group": "Buildings",
+   "label": "Wood",
+   "help": "Planks, beams, wooden walls and floors, fences, crates and barrels",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.5,
+   "level": "advanced"
+  },
+  "ReliefMetal": {
+   "section": "relief",
+   "group": "Buildings",
+   "label": "Metal",
+   "help": "Metal and iron, chains, pipes and machines",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.3,
+   "level": "advanced"
+  },
+  "ReliefBark": {
+   "section": "relief",
+   "group": "Nature",
+   "label": "Bark",
+   "help": "Tree trunks, branches, roots and logs",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.6,
+   "level": "advanced"
+  },
+  "ReliefLeaves": {
+   "section": "relief",
+   "group": "Nature",
+   "label": "Leaves",
+   "help": "Leaves, bushes, plants and flowers on models",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.2,
+   "level": "advanced"
+  },
+  "ReliefCreatures": {
+   "section": "relief",
+   "group": "Creatures and characters",
+   "label": "Creatures",
+   "help": "Creatures: fur, hide and scales",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.15,
+   "level": "advanced"
+  },
+  "ReliefCharacters": {
+   "section": "relief",
+   "group": "Creatures and characters",
+   "label": "Characters",
+   "help": "Characters and the armour they wear on their body",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.1,
+   "level": "advanced"
+  },
+  "ReliefArmour": {
+   "section": "relief",
+   "group": "Creatures and characters",
+   "label": "Armour",
+   "help": "Helmets, shoulders, weapons and shields",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.1,
+   "level": "advanced"
+  },
+  "ReliefProps": {
+   "section": "relief",
+   "group": "Other",
+   "label": "Props",
+   "help": "Props: cloth, banners, lamps, signs and everything else",
+   "type": "float",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.05,
+   "decimals": 2,
+   "engineMin": 0.0,
+   "engineMax": 3.0,
+   "enabledWhen": [
+    {
+     "key": "Relief",
+     "is": true
+    }
+   ],
+   "default": 0.4,
+   "level": "advanced"
+  },
+  "WaterReflect": {
+   "section": "water",
+   "label": "Reflections",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Water mirrors the sky, shores, trees and buildings on screen; strong when you look across the water, weak when you look down into it. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.7,
+   "level": "essential"
+  },
+  "WaterGlitter": {
+   "section": "water",
+   "label": "Glitter",
+   "type": "float",
+   "min": 0.0,
+   "max": 4.0,
+   "decimals": 2,
+   "help": "Sparkling path of the sun, and of the moon at night, on the waves; less under clouds and none in the ghost world. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 4.0,
+   "default": 0.4,
+   "level": "advanced"
+  },
+  "WaterClarity": {
+   "section": "water",
+   "label": "Clarity",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "See the bottom through shallow water, and a deeper teal where the water gets deep. 0 = the game's own water colour",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 0.25,
+   "level": "advanced"
+  },
+  "WaterSmooth": {
+   "section": "water",
+   "label": "Smooth",
+   "type": "float",
+   "min": 0.0,
+   "max": 1.0,
+   "decimals": 2,
+   "help": "The game's animated water texture under the reflections is replaced by the zone's own water colours, shallow to deep, rivers and lakes apart from the sea, so the water reads as one smooth surface that the waves and reflections play on. 0 = the game's texture as drawn",
+   "engineMin": 0.0,
+   "engineMax": 1.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "WaterBump": {
+   "section": "water",
+   "label": "Bump",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Fine ripples from the later clients' water normal map (waterbump.blp, copied from the game's archives by Lumenveil-Setup.cmd) drift with the wind over the waves and bend the reflections. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "WaterFoam": {
+   "section": "water",
+   "label": "Foam",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Foam where the water is shallow along the shores, from the later clients' foam texture (waterfoam.blp, copied by Lumenveil-Setup.cmd), drifting with the wind. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.0,
+   "level": "advanced"
+  },
+  "WaterWaves": {
+   "section": "water",
+   "label": "Waves",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Small waves that break up the reflections and the glitter; higher in rain, snow or sand. 0 = a still mirror",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 0.2,
+   "level": "advanced"
+  },
+  "WaterRain": {
+   "section": "water",
+   "label": "Rain rings",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How strongly raindrops ring out on the water while it rains; how many follows the rain. None in snow or sand. Far away they roughen the water instead. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "WaterMemory": {
+   "section": "water",
+   "label": "Remember what was seen",
+   "type": "bool",
+   "help": "Reflections of what left the screen come from a panorama of everything seen from here, so turning the camera does not make them pop or vanish. Off = only what is on screen",
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "SurfaceSheen": {
+   "section": "wet",
+   "label": "Sheen",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Stone, cobbles, rock, ice and other smooth surfaces catch the sun, the moon and the lamps when you look along them toward the light, most of all under a low sun; snow sparkles; grass, dirt and sand stay matt. 0 = off",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.3,
+   "level": "advanced"
+  },
+  "WetSurfaces": {
+   "section": "wet",
+   "label": "Wet in rain",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "Rain wets what stands under the open sky within about a minute, each ground as its material takes water: stone gets a glossy film at once, soil and sand darken first, grass beads into droplets that glint but never mirror, snow does not darken. It dries over minutes once the rain stops, slower at night. Nothing under roofs. 0 = never wet",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "essential"
+  },
+  "Puddles": {
+   "section": "wet",
+   "label": "Puddles",
+   "type": "float",
+   "min": 0.0,
+   "max": 2.0,
+   "decimals": 2,
+   "help": "How much of the flat open ground pools into puddles in steady rain: still mirrors that fill over a minute or two and outlast the wet ground. Never on grass or snow. 0 = no puddles",
+   "engineMin": 0.0,
+   "engineMax": 2.0,
+   "default": 1.0,
+   "level": "advanced"
+  },
+  "TerrainMaterials": {
+   "section": "wet",
+   "label": "Ground materials from textures",
+   "type": "bool",
+   "help": "Tell the ground's material from its texture (materialdata.bin): grass, soil, stone, sand, snow, ice, wood or lava. Off = judge every surface by its colour. Needs extShadowQuality 3+",
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "Underwater": {
+   "section": "world",
+   "label": "Fog under water",
+   "type": "bool",
+   "help": "Keep the effect while the camera is under water",
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "LiquidDepth": {
+   "section": "world",
+   "label": "Water writes depth",
+   "type": "bool",
+   "help": "Let water surfaces write depth so water is fogged by its own distance",
+   "default": true,
+   "globalOnly": true,
+   "level": "advanced"
+  },
+  "FarClipMax": {
+   "section": "world",
+   "label": "View distance",
+   "type": "viewDistance",
+   "min": 184.0,
+   "max": 1583.33,
+   "decimals": 0,
+   "unit": "yd",
+   "off": 0.0,
+   "help": "The client caps the continents at 791 yd; the engine allows 1583. Costs about four times the loaded terrain. 0 keeps the client's cap. Turning it on when it was off at start-up needs a client restart",
+   "default": 1583.0,
+   "globalOnly": true,
+   "level": "essential"
+  },
+  "DebugView": {
+   "section": "debug",
+   "label": "View",
+   "type": "choice",
+   "help": "Show one input of the fog instead of the scene",
+   "options": [
+    {
+     "value": 0,
+     "label": "Off"
+    },
+    {
+     "value": 1,
+     "label": "Fog radiance"
+    },
+    {
+     "value": 2,
+     "label": "Transmittance"
+    },
+    {
+     "value": 3,
+     "label": "Linear depth"
+    },
+    {
+     "value": 4,
+     "label": "Surface shadows"
+    },
+    {
+     "value": 5,
+     "label": "Lamp halos"
+    },
+    {
+     "value": 6,
+     "label": "Lamp light on surfaces"
+    },
+    {
+     "value": 7,
+     "label": "Client shadow maps (receiver matrices)"
+    },
+    {
+     "value": 8,
+     "label": "Client shadow maps (caster matrices)"
+    }
+   ],
+   "default": 0,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "SunMarker": {
+   "section": "debug",
+   "label": "Sun marker",
+   "type": "bool",
+   "help": "Red marker where the sun direction projects on screen",
+   "default": false,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "ClientShadowMaps": {
+   "section": "debug",
+   "label": "Client shadow maps",
+   "type": "bool",
+   "help": "Find the client's own sun shadow maps each frame and describe them in CoAVolFog.log",
+   "default": false,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "LogLevel": {
+   "section": "debug",
+   "label": "Log level",
+   "type": "choice",
+   "help": "Detail written to CoAVolFog.log",
+   "options": [
+    {
+     "value": 0,
+     "label": "Errors"
+    },
+    {
+     "value": 1,
+     "label": "Info"
+    },
+    {
+     "value": 2,
+     "label": "Debug"
+    }
+   ],
+   "default": 1,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "DrawLog": {
+   "section": "debug",
+   "label": "Draw log",
+   "type": "int",
+   "help": "Draw log for research: 1 = DrawLogKey captures the next frame that draws the world to CoAVolFog-draws.csv next to the log (the key needs Overlay=1); 2 = the same once each time this file is read with DrawLog=2; 0 = off",
+   "min": 0,
+   "max": 2,
+   "default": 0,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "PerfLog": {
+   "section": "debug",
+   "label": "Timing log",
+   "type": "bool",
+   "help": "Frame profile: 1 = the main thread's and the GPU's time for each part of the fog, the client and Present, in the log every 60 s; 0 = off",
+   "default": false,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "DrawLogVertexConstants": {
+   "section": "debug",
+   "label": "Draw log vertex constants",
+   "type": "text",
+   "help": "Shader constants whose values the draw log writes to CoAVolFog-draws\\constants.csv, as registers like c2-5,c37-48 (none = no values). Empty = vertex c0-7,c14-16,c31-33,c37-48,c224-235 and pixel c0-12, which cover the client's shadow-map matrices",
+   "default": "",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "DrawLogPixelConstants": {
+   "section": "debug",
+   "label": "Draw log pixel constants",
+   "type": "text",
+   "help": "Shader constants whose values the draw log writes to CoAVolFog-draws\\constants.csv, as registers like c2-5,c37-48 (none = no values). Empty = vertex c0-7,c14-16,c31-33,c37-48,c224-235 and pixel c0-12, which cover the client's shadow-map matrices",
+   "default": "",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "Enable": {
+   "section": "engine",
+   "label": "Lumenveil",
+   "type": "bool",
+   "help": "Off: the game is drawn as without Lumenveil, which stays installed. Needs a client restart",
+   "default": true,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "EngineHooks": {
+   "section": "engine",
+   "label": "Engine hooks",
+   "type": "bool",
+   "help": "The hooks into the client that give the lamps, water, relief, shadows and lifted view distance. Off leaves only the fog. Needs a client restart",
+   "default": true,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "Overlay": {
+   "section": "engine",
+   "label": "Settings window",
+   "type": "bool",
+   "help": "The in-game settings window and the keys below. Turning it on again needs a client restart",
+   "default": true,
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "OverlayKey": {
+   "section": "hotkeys",
+   "label": "Settings window",
+   "type": "hotkey",
+   "help": "Shows and hides the in-game settings window",
+   "default": "Ctrl+F7",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "ToggleKey": {
+   "section": "hotkeys",
+   "label": "Compare with the plain game",
+   "type": "hotkey",
+   "help": "Switches the whole mod off and on while you play, to compare with the plain game. Never saved",
+   "default": "Ctrl+F12",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "LanternKey": {
+   "section": "hotkeys",
+   "label": "Belt lantern",
+   "type": "hotkey",
+   "help": "Switches the belt lantern on or off and saves that",
+   "default": "Ctrl+F6",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "ReliefKey": {
+   "section": "hotkeys",
+   "label": "Ground relief",
+   "type": "hotkey",
+   "help": "Switches the ground relief on or off and saves that",
+   "default": "Ctrl+F4",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "SpotKey": {
+   "section": "hotkeys",
+   "label": "Save a spot",
+   "type": "hotkey",
+   "help": "Writes where you stand, the time and the weather to CoAVolFog-spots.txt, to report a place that looks wrong",
+   "default": "Ctrl+F5",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "RegionKey": {
+   "section": "hotkeys",
+   "label": "Zone looks window",
+   "type": "hotkey",
+   "help": "Shows and hides the window of the looks kept per zone (CoAVolFog-regions.ini)",
+   "default": "Ctrl+F3",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "DrawLogKey": {
+   "section": "hotkeys",
+   "label": "Draw log",
+   "type": "hotkey",
+   "help": "Writes one frame's draw calls to the log, for debugging",
+   "default": "Ctrl+Shift+F10",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "ZoneDensity": {
+   "section": "zones",
+   "label": "Density per zone",
+   "type": "zoneFactors",
+   "help": "Density per zone: the zone's id and a multiplier of Density, comma-separated (148:0.5,490:0.7), or none. The settings window's \"Density\" section sets the zone you stand in; a zone change fades over 4 seconds (0-4 each)",
+   "default": "1:0.09,38:0.33,11:0.1,45:0.11,267:0.21,1537:0.16,2257:0.19,1519:0.15,331:0.21,406:0.24,1337:0.37,3:0.12,36:0.2,4:0.2,46:0.2,41:0.2,139:0.2,12:0.2,3430:0.2,3433:0.2,4080:0.2,44:0.2,51:0.2,3487:0.2,130:0.2,33:0.2,8:0.2,47:0.2,85:0.2,1497:0.2,28:0.2,40:0.2,16:0.2,3524:0.2,3525:0.2,148:0.2,1657:0.2,405:0.2,14:0.2,15:0.2,361:0.2,357:0.2,493:0.2,215:0.2,1637:0.2,1377:0.2,440:0.2,141:0.2,17:0.2,3557:0.2,400:0.2,1638:0.2,490:0.2,618:0.2,3522:0.2,3483:0.2,3518:0.2,3523:0.2,3520:0.2,3703:0.2,3519:0.2,3521:0.2,3537:0.2,2817:0.2,4395:0.2,65:0.2,394:0.2,495:0.2,4742:0.2,210:0.2,3711:0.2,67:0.2,4197:0.2,66:0.2,4298:0.2,10:0.1",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "DryZones": {
+   "section": "zones",
+   "label": "Dry zones",
+   "type": "zoneList",
+   "help": "The zones that count as dry and as green, by the client's zone id, comma-separated, or none. CoAVolFog.log names the zone you enter, and the settings window's \"Open land\" section moves the zone you stand in between the lists",
+   "default": "14,17,1637,405,400,440,1377,3,51,46,4,40,3483,3522,3520",
+   "globalOnly": true,
+   "level": "expert"
+  },
+  "GreenZones": {
+   "section": "zones",
+   "label": "Green zones",
+   "type": "zoneList",
+   "help": "The zones that count as dry and as green, by the client's zone id, comma-separated, or none. CoAVolFog.log names the zone you enter, and the settings window's \"Open land\" section moves the zone you stand in between the lists",
+   "default": "215,1638,12,44,38,45,267,47,11,1,15,148,490,493,85,130,28,139,36,1519,1657,3430,3433,3487,4080,3524,3525,3521,3519,3518,3703,3537,495,65,394,66,3711,2817,4395,67,210,4197,4742",
+   "globalOnly": true,
+   "level": "expert"
+  }
+ }
+}

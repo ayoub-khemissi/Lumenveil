@@ -1,0 +1,44 @@
+{
+ "comment": "Ready-made looks the launcher offers. Each preset lists only what it changes from the shipped CoAVolFog.ini; 'ultra' is the shipped file itself. Keys must exist in schema.json (scripts/settings_schema.py --check verifies it).",
+ "default": "ultra",
+ "presets": [
+  {
+   "id": "performance",
+   "label": "Performance",
+   "help": "For modest PCs and laptops: the fog at quarter resolution, fewer lamps, no lamp shadows and the client's own view distance.",
+   "values": {
+    "Quality": 1,
+    "ShaftRange": 120,
+    "LampCount": 12,
+    "LampShadows": 0,
+    "WindowLight": 1.5,
+    "EffectLight": 0,
+    "WaterMemory": false,
+    "Puddles": 0,
+    "FarClipMax": 0,
+    "Relief": false,
+    "ReliefModels": false
+   }
+  },
+  {
+   "id": "balanced",
+   "label": "Balanced",
+   "help": "Most of the look at a lower cost: the fog at half resolution, fewer lamps and a shorter view distance.",
+   "values": {
+    "Quality": 2,
+    "ShaftRange": 170,
+    "LampCount": 24,
+    "LampShadows": 0.6,
+    "FarClipMax": 1100,
+    "Relief": false,
+    "ReliefModels": false
+   }
+  },
+  {
+   "id": "ultra",
+   "label": "Ultra",
+   "help": "Everything on: the full fog, lamps, shadows, water and the longest view distance. The look the screenshots were taken with.",
+   "values": {}
+  }
+ ]
+}

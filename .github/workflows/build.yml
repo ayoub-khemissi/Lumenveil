@@ -22,6 +22,10 @@ jobs:
         shell: pwsh
         run: python engine/tools/check_comments.py
 
+      - name: Settings schema check
+        shell: pwsh
+        run: python scripts/settings_schema.py --check
+
       - uses: actions/upload-artifact@v4
         with:
           name: Lumenveil
