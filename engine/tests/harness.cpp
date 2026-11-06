@@ -2834,7 +2834,7 @@ void CheckPlainGameKey(const std::wstring& outDir, const std::wstring& shippedIn
     saved = write("[CoAVolFog]\r\nPlainGame=0\r\nDensity=1\r\n") && saved;
     store.ReloadIfChanged();
     const bool afterOff = store.PlainGame();
-    store.SetPlainGame(true); // Ctrl+F12
+    store.SetPlainGame(true);
     saved = write("[CoAVolFog]\r\nPlainGame=0\r\nDensity=0.5\r\n") && saved;
     store.ReloadIfChanged();
     const bool keyKept = store.PlainGame();

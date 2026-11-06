@@ -282,8 +282,6 @@ struct Config
     ConstantRanges drawLogPixelConstants = kDefaultDrawLogPixelConstants;
     bool clientShadowMaps = false;
     bool plainGame = false;
-    // PlainGame in the ini: the plain game shown as Ctrl+F12 shows it, kept across starts and read live, so the launcher's
-    // switch turns the mod off and on while the game runs (Enable is read at start only)
     bool plainGameKept = false;
 };
 

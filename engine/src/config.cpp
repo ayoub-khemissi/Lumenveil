@@ -1018,7 +1018,6 @@ bool ConfigStore::ReloadIfChanged()
         return false;
     m_stamp = stamp;
     ReadKeepingStartupSwitches();
-    // the launcher's switch: a change of PlainGame in the file does what Ctrl+F12 does; Ctrl+F12 stays free otherwise
     if (m_config.plainGameKept != m_filePlain)
     {
         m_filePlain = m_config.plainGameKept;
