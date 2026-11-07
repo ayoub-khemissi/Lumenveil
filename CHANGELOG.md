@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.3 (2026-11-07)
+
+- The setup works on clients with many archives (HD packs: 32 of them). Each setup thread opens every archive, and
+  Windows lets a program keep only 512 files open by default: with 16 threads and 32 archives the last thread opened
+  some archives only, missed the models they hold (windows and lamps missing, a different count at each run), and no
+  file was left to write lampdata.bin, so the setup failed with "could not write lampdata.bin". The setup now raises
+  that limit, a thread that cannot open every archive is not used, and a failed write gives its cause.
+
 ## 0.7.2 (2026-11-06)
 
 - The credits and the file properties point to lordaeron.eu for this build's source, published beside each build.

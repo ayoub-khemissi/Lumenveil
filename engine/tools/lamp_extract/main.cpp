@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -10,6 +11,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <thread>
 
 #include "archive_set.h"
@@ -28,6 +30,12 @@ namespace
 {
 
 constexpr size_t kMaxThreads = 16;
+constexpr int kOpenFiles = 8192;
+
+std::string Reason()
+{
+    return errno != 0 ? std::generic_category().message(errno) : std::string("the system gave no reason");
+}
 
 struct Options
 {
@@ -235,9 +243,10 @@ bool OutputsPresent(const Options& options)
 
 int WriteLiquids(const Options& options, const std::vector<MapLiquids>& maps)
 {
+    errno = 0;
     if (!WriteLiquidFile(options.liquids, maps))
     {
-        std::cerr << "could not write " << options.liquids.string() << "\n";
+        std::cerr << "could not write " << options.liquids.string() << ": " << Reason() << "\n";
         return 1;
     }
     LiquidMap reread;
@@ -327,11 +336,12 @@ int RunWaterTextures(const Options& options, const ArchiveSet& archives)
             std::cout << source << ": not in the archives, no " << target << "\n";
             continue;
         }
+        errno = 0;
         std::ofstream file(path, std::ios::binary);
         file.write(reinterpret_cast<const char*>(bytes->data()), static_cast<std::streamsize>(bytes->size()));
         if (!file)
         {
-            std::cerr << "could not write " << path.string() << "\n";
+            std::cerr << "could not write " << path.string() << ": " << Reason() << "\n";
             return 1;
         }
         std::cout << "wrote " << path.string() << " (" << bytes->size() << " bytes) from " << source << "\n";
@@ -370,9 +380,10 @@ int RunLiquids(const Options& options, const ArchiveSet& archives)
         std::fflush(stdout);
         maps.push_back(std::move(found));
     }
+    errno = 0;
     if (!WriteLiquidFile(options.liquids, maps))
     {
-        std::cerr << "could not write " << options.liquids.string() << "\n";
+        std::cerr << "could not write " << options.liquids.string() << ": " << Reason() << "\n";
         return 1;
     }
     LiquidMap reread;
@@ -401,6 +412,7 @@ int main(int argc, char** argv)
     }
     if (options.background)
         SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+    _setmaxstdio(kOpenFiles);
 
     auto started = std::chrono::steady_clock::now();
     ArchiveSet archives;
@@ -445,7 +457,8 @@ int main(int argc, char** argv)
     while (readers.size() < threads)
     {
         auto reader = std::make_unique<ArchiveSet>();
-        if (!reader->Open(options.data, options.locale, !options.stock))
+        if (!reader->Open(options.data, options.locale, !options.stock) ||
+            reader->OpenedNames() != archives.OpenedNames())
             break;
         readers.push_back(reader.get());
         extraReaders.push_back(std::move(reader));
@@ -512,9 +525,10 @@ int main(int argc, char** argv)
         std::ofstream report(options.census);
         WriteCensus(report, {archives, models, wmos, scanner, maps, places, seconds});
     }
+    errno = 0;
     if (!WriteLampFile(options.out, maps, objectModels))
     {
-        std::cerr << "could not write " << options.out.string() << "\n";
+        std::cerr << "could not write " << options.out.string() << ": " << Reason() << "\n";
         return 1;
     }
     std::cout << "wrote " << options.out.string() << " (" << fs::file_size(options.out) << " bytes) in " << seconds
